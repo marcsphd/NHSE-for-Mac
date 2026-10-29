@@ -1,0 +1,13 @@
+ACNH Save Editor for Mac — 1.4.1
+
+A native SwiftUI port of cbreezy210/ACNH-Save-Editor.
+Original project: https://github.com/cbreezy210/ACNH-Save-Editor
+Original application © 2026 cbreezy210, MIT.
+
+Save-format metadata, player/island settings and identity propagation, map and villager structures, villager names, portraits, terrain identifiers and collision data, item stack limits, and inventory icons/mappings: kwsch/NHSE contributors, GPL-3.0.
+https://github.com/kwsch/NHSE
+
+The native Mac port is free software under GPL-3.0. You may copy, modify, and redistribute it under that license. It comes with ABSOLUTELY NO WARRANTY. Full license texts are bundled beside this file as GPL-3.0.txt and Upstream-LICENSE.txt. Source and build scripts are included in the accompanying source archive.
+
+This is an independent modified port, not an official upstream release.
+Not affiliated with Nintendo.

@@ -1,0 +1,342 @@
+import SwiftUI
+import ACNHCore
+
+private enum MapLayer: String, CaseIterable { case terrain = "Terrain", items = "Items", buildings = "Buildings" }
+private enum MapTool: String, CaseIterable { case inspect = "Inspect", ground = "Paint Terrain", path = "Paint Paths" }
+
+struct IslandMapView: View {
+    @EnvironmentObject var model: EditorModel
+    @State private var layer: MapLayer = .terrain
+    @State private var tool: MapTool = .inspect
+    @State private var x = 40
+    @State private var y = 40
+    @State private var itemX = 112
+    @State private var itemY = 80
+    @State private var itemLayer = 0
+    @State private var selectedBuilding = 0
+    @State private var zoom: Double = 3
+    @State private var grid = false
+    @State private var showBuildings = true
+    @State private var ground: UInt16 = 0
+    @State private var path: UInt16 = 0x5C
+    @State private var angle: UInt16 = 0
+    @State private var elevation: UInt16 = 0
+    @State private var brushSize = 1
+    @State private var strokeRecorded = false
+    @State private var previousPoint: (Int, Int)?
+    @State private var itemSearch = ""
+    private static let acres = (try? Data(contentsOf: Bundle.module.url(forResource: "outside", withExtension: "bin")!)) ?? Data()
+    private var edits: IslandEdits { model.draft?.island ?? .init() }
+    private var selectedIndex: Int { x * 96 + y }
+    private var selectedItemIndex: Int { itemLayer * IslandLayout.fieldCount + itemX * 192 + itemY }
+    private var tile: TerrainTile { model.world?.terrain(selectedIndex, edits: edits) ?? TerrainTile() }
+    var body: some View {
+        HSplitView {
+            VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("An island of your own.").font(.system(size: 27, weight: .semibold, design: .rounded))
+                    Text(model.demo ? "Preview · Example island · Saving disabled" : "Select a tile to inspect it, or drag a brush to shape terrain and paths.")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
+                HStack {
+                    Picker("Layer", selection: $layer) { ForEach(MapLayer.allCases, id: \.self) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented).frame(maxWidth: 300)
+                    Spacer()
+                    Toggle("Grid", isOn: $grid).toggleStyle(.checkbox)
+                }
+                HStack {
+                    Image(systemName: "minus.magnifyingglass")
+                    Slider(value: $zoom, in: 3...14, step: 1).frame(maxWidth: 140).accessibilityLabel("Map zoom")
+                    Image(systemName: "plus.magnifyingglass")
+                    Text("\(Int(zoom * 20))%").font(.caption.monospacedDigit())
+                    Spacer()
+                    Toggle("Buildings", isOn: $showBuildings).toggleStyle(.checkbox)
+                }.font(.caption)
+                ScrollView([.horizontal, .vertical]) {
+                    if let world = model.world {
+                        mapCanvas(world).frame(width: 144 * zoom, height: 128 * zoom)
+                    }
+                }.background(Color(red: 0.48, green: 0.76, blue: 0.77), in: RoundedRectangle(cornerRadius: 12))
+                HStack(spacing: 12) {
+                    legend("Land", color: .init(red: 0.30, green: 0.55, blue: 0.31))
+                    legend("Water", color: .init(red: 0.50, green: 0.84, blue: 0.77))
+                    legend("Path", color: .gray)
+                    Spacer()
+                    Text("NHSE map data · Schematic view").font(.caption2).foregroundStyle(.secondary)
+                }
+            }.padding(22).frame(minWidth: 490, maxWidth: .infinity)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    switch layer {
+                    case .terrain: terrainInspector
+                    case .items: itemInspector
+                    case .buildings: buildingInspector
+                    }
+                }.padding(20)
+            }.frame(minWidth: 290, idealWidth: 315, maxWidth: 370)
+        }
+        .onChange(of: layer) { _, _ in tool = .inspect; previousPoint = nil; strokeRecorded = false }
+    }
+    private func legend(_ text: String, color: Color) -> some View {
+        HStack(spacing: 4) { Circle().fill(color).frame(width: 8, height: 8); Text(text).font(.caption2).foregroundStyle(.secondary) }
+    }
+    private var terrainInspector: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Terrain & Paths").font(.title3.weight(.semibold))
+            Picker("Tool", selection: $tool) { ForEach(MapTool.allCases, id: \.self) { Text($0.rawValue).tag($0) } }
+            if tool != .inspect {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Brush").font(.headline)
+                    if tool == .ground {
+                        HStack {
+                            Button("Grass") { ground = 0 }
+                            Button("Water") { ground = 0x15 }
+                            Button("Cliff") { ground = 0x29; elevation = max(1, elevation) }
+                        }.controlSize(.small)
+                        modelPicker("Shape", selection: $ground, road: false)
+                        Stepper("Elevation: \(elevation)", value: $elevation, in: 0...3)
+                    } else { pathPicker($path) }
+                    rotation($angle)
+                    Picker("Brush size", selection: $brushSize) { Text("1 × 1").tag(1); Text("3 × 3").tag(3); Text("5 × 5").tag(5) }
+                    Text("Drag on the map to paint. A complete stroke is one undo step.").font(.caption).foregroundStyle(.secondary)
+                }.padding(14).background(Color.island.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
+            }
+            Divider()
+            Text("Selected tile").font(.headline)
+            HStack {
+                Stepper("X: \(x)", value: $x, in: 0...111)
+                Stepper("Y: \(y)", value: $y, in: 0...95)
+            }.font(.callout)
+            modelPicker("Terrain", selection: terrainBinding(\.ground), road: false)
+            Stepper("Elevation: \(tile.elevation)", value: terrainBinding(\.elevation), in: 0...3)
+            Picker("Terrain rotation", selection: terrainBinding(\.angle)) { ForEach(0..<4) { Text("\($0 * 90)°").tag(UInt16($0)) } }
+            pathPicker(terrainBinding(\.path))
+            Picker("Path rotation", selection: terrainBinding(\.pathAngle)) { ForEach(0..<4) { Text("\($0 * 90)°").tag(UInt16($0)) } }
+            if edits.terrain[selectedIndex] != nil {
+                Button("Revert This Tile") { model.change { $0.island.terrain.removeValue(forKey: selectedIndex) } }
+            }
+            Text("Terrain and path layers are edited independently. Base shoreline acres, custom designs, and untouched cells are preserved.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+    private func terrainBinding(_ key: WritableKeyPath<TerrainTile, UInt16>) -> Binding<UInt16> {
+        Binding(get: { tile[keyPath: key] }, set: { value in
+            guard let world = model.world else { return }
+            model.change { draft in
+                var valueTile = world.terrain(selectedIndex, edits: draft.island)
+                valueTile[keyPath: key] = value
+                if key == \.ground { valueTile.variation = 0 }
+                if key == \.path { valueTile.pathVariation = 0 }
+                draft.island.terrain[selectedIndex] = valueTile
+            }
+        })
+    }
+    private func modelPicker(_ title: String, selection: Binding<UInt16>, road: Bool) -> some View {
+        Picker(title, selection: selection) {
+            if road { Text("No path").tag(UInt16(0)) }
+            ForEach(IslandMetadata.shared.terrain.filter { $0.road == road }) { choice in Text(friendly(choice.name)).tag(choice.id) }
+        }
+    }
+    private func friendly(_ name: String) -> String {
+        if name == "Base" { return "Flat grass" }
+        return name.replacingOccurrences(of: "Road", with: "").replacingOccurrences(of: "DarkSoil", with: "Dark soil ").replacingOccurrences(of: "FanPattern", with: "Arched tile ")
+            .replacingOccurrences(of: "River", with: "River ").replacingOccurrences(of: "Cliff", with: "Cliff ").replacingOccurrences(of: "Fall", with: "Waterfall ")
+    }
+    private func pathPicker(_ binding: Binding<UInt16>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("Path style", selection: Binding(get: { pathBase(binding.wrappedValue) }, set: { binding.wrappedValue = $0 })) {
+                ForEach(Array([(UInt16(0), "None"), (0x47, "Dirt"), (0x5C, "Stone"), (0x94, "Brick"), (0xA9, "Dark dirt"), (0xBE, "Arched tile"), (0xD3, "Sand"), (0xE8, "Tile"), (0xFD, "Wood")].enumerated()), id: \.offset) { _, entry in Text(entry.1).tag(entry.0) }
+            }
+            modelPicker("Path shape", selection: binding, road: true)
+        }
+    }
+    private func pathBase(_ value: UInt16) -> UInt16 {
+        if value == 0 { return 0 }
+        return [UInt16(0xFD), 0xE8, 0xD3, 0xBE, 0xA9, 0x94, 0x5C, 0x47].first { value >= $0 } ?? 0
+    }
+    private func rotation(_ binding: Binding<UInt16>) -> some View {
+        Picker("Rotation", selection: binding) { ForEach(0..<4) { Text("\($0 * 90)°").tag(UInt16($0)) } }
+    }
+    private var itemInspector: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Outdoor Items").font(.title3.weight(.semibold))
+            Picker("Item layer", selection: $itemLayer) { Text("Ground").tag(0); Text("Upper").tag(1) }.pickerStyle(.segmented)
+            HStack {
+                Stepper("X: \(itemX)", value: $itemX, in: 0...287)
+                Stepper("Y: \(itemY)", value: $itemY, in: 0...191)
+            }.font(.callout)
+            if let world = model.world {
+                let root = (try? world.rootIndex(for: selectedItemIndex, edits: edits)) ?? selectedItemIndex
+                let item = world.fieldItem(root, edits: edits)
+                Text(item.isEmpty ? "Empty map cell" : model.catalog.name(item)).font(.headline)
+                if !item.isEmpty {
+                    Text("Root at (\((root % IslandLayout.fieldCount) / 192), \(root % 192))").font(.caption.monospaced()).foregroundStyle(.secondary)
+                }
+                Button("Remove Object & Footprint") { model.clearMapItem(at: selectedItemIndex) }.disabled(item.isEmpty)
+            }
+            Divider()
+            Text("Drop a catalog item").font(.headline)
+            TextField("Search items", text: $itemSearch).textFieldStyle(.roundedBorder).accessibilityLabel("Search outdoor items")
+            List(selection: Binding(get: { model.selectedItem }, set: { if let id = $0 { model.selectItem(id) } })) {
+                ForEach(model.catalog.items.filter { $0.id < 60_000 && (itemSearch.isEmpty ? Catalog.favoriteNames.contains($0.name) : $0.name.localizedCaseInsensitiveContains(itemSearch)) }) { item in
+                    Text(item.name).font(.callout).tag(item.id)
+                }
+            }.listStyle(.bordered).frame(height: 200)
+            if let item = model.currentItem {
+                Text(item.name).font(.callout.weight(.semibold))
+                Stepper("Quantity: \(model.quantity)", value: $model.quantity, in: 1...max(1, item.maxStack))
+                Button("Drop at Selected Cell") { model.dropMapItem(at: selectedItemIndex) }.buttonStyle(.borderedProminent)
+            }
+            Text("Items use half-tile coordinates. Dropping requires an empty 2 × 2 footprint; linked cells are added automatically. Terrain, building collision, and accessibility are not automatically resolved.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+    private var buildingInspector: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Buildings").font(.title3.weight(.semibold))
+            if let world = model.world {
+                let buildings = (0..<46).map { world.building($0, edits: edits) }.filter { $0.kind != 0 }
+                if buildings.isEmpty { Text("No buildings are present in this save.").foregroundStyle(.secondary) }
+                else {
+                    Picker("Building", selection: $selectedBuilding) {
+                        ForEach(buildings) { building in Text("\(building.name) [\(building.id + 1)]").tag(building.id) }
+                    }
+                    let index = buildings.contains(where: { $0.id == selectedBuilding }) ? selectedBuilding : buildings[0].id
+                    let building = world.building(index, edits: edits)
+                    Text(building.name).font(.headline)
+                    Text("Coordinates in half tiles").font(.caption).foregroundStyle(.secondary)
+                    Stepper("X: \(building.position.x)", value: buildingBinding(index, \.x), in: 0...UInt16(IslandLayout.buildingWidth - 1))
+                    Stepper("Y: \(building.position.y)", value: buildingBinding(index, \.y), in: 0...UInt16(IslandLayout.buildingHeight - 1))
+                    Picker("Rotation", selection: Binding(get: { Int(building.position.angle) }, set: { value in
+                        model.change { draft in var p = building.position; p.angle = UInt8(value); draft.island.buildings[index] = p }
+                    })) { ForEach(0..<4) { Text("\($0 * 90)°").tag($0) } }
+                    if edits.buildings[index] != nil { Button("Revert Building") { model.change { $0.island.buildings.removeValue(forKey: index) } } }
+                    Text("Each X or Y step moves the building half a terrain tile. Moving a building preserves its identity, interior, and other settings. Place it on clear, accessible land; collision and bridge/incline connections need manual checking.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+    private func buildingBinding(_ index: Int, _ key: WritableKeyPath<BuildingPosition, UInt16>) -> Binding<UInt16> {
+        Binding(get: { model.world?.building(index, edits: edits).position[keyPath: key] ?? 0 }, set: { value in
+            guard let world = model.world else { return }
+            model.change { draft in var p = world.building(index, edits: draft.island).position; p[keyPath: key] = value; draft.island.buildings[index] = p }
+        })
+    }
+    private func mapCanvas(_ world: IslandSnapshot) -> some View {
+        Canvas { context, size in
+            let cell = zoom
+            context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(red: 0.48, green: 0.76, blue: 0.77)))
+            for tx in 0..<112 { for ty in 0..<96 {
+                let tile = world.terrain(tx * 96 + ty, edits: edits)
+                let color = tileColor(tile, x: tx, y: ty, world: world)
+                context.fill(Path(CGRect(x: Double(tx + 16) * cell, y: Double(ty + 16) * cell, width: cell + 0.1, height: cell + 0.1)), with: .color(color))
+            } }
+            if layer == .items {
+                for index in 0..<IslandLayout.fieldCount {
+                    let item = world.fieldItem(itemLayer * IslandLayout.fieldCount + index, edits: edits)
+                    guard !item.isEmpty, item.id != 0xFFFD else { continue }
+                    let px = Double(index / 192) / 2, py = Double(index % 192) / 2 + 16
+                    let rect = CGRect(x: px * cell, y: py * cell, width: max(2, cell), height: max(2, cell))
+                    context.fill(Path(ellipseIn: rect.insetBy(dx: 0.5, dy: 0.5)), with: .color(.yellow))
+                }
+            }
+            if grid {
+                var lines = Path()
+                for i in 0...144 { lines.move(to: CGPoint(x: Double(i) * cell, y: 0)); lines.addLine(to: CGPoint(x: Double(i) * cell, y: 128 * cell)) }
+                for i in 0...128 { lines.move(to: CGPoint(x: 0, y: Double(i) * cell)); lines.addLine(to: CGPoint(x: 144 * cell, y: Double(i) * cell)) }
+                context.stroke(lines, with: .color(.black.opacity(0.08)), lineWidth: 0.5)
+            }
+            var acres = Path()
+            for i in 0...9 { acres.move(to: CGPoint(x: Double(i * 16) * cell, y: 0)); acres.addLine(to: CGPoint(x: Double(i * 16) * cell, y: 128 * cell)) }
+            for i in 0...8 { acres.move(to: CGPoint(x: 0, y: Double(i * 16) * cell)); acres.addLine(to: CGPoint(x: 144 * cell, y: Double(i * 16) * cell)) }
+            context.stroke(acres, with: .color(.white.opacity(0.18)), lineWidth: 1)
+            if showBuildings || layer == .buildings {
+                for index in 0..<46 {
+                    let building = world.building(index, edits: edits)
+                    guard building.kind != 0 else { continue }
+                    let point = MapCoordinates.buildingPoint(building.position, zoom: cell)
+                    let markerSize = max(8, cell * 1.8)
+                    let rect = CGRect(x: point.x - markerSize / 2, y: point.y - markerSize / 2, width: markerSize, height: markerSize)
+                    context.fill(Path(roundedRect: rect, cornerRadius: 2), with: .color(index == selectedBuilding && layer == .buildings ? .orange : .white))
+                    context.stroke(Path(roundedRect: rect, cornerRadius: 2), with: .color(.brown), lineWidth: 1)
+                    if index == selectedBuilding && layer == .buildings {
+                        context.stroke(Path(roundedRect: rect.insetBy(dx: -2, dy: -2), cornerRadius: 3), with: .color(Color.island), lineWidth: 2)
+                    }
+                }
+            }
+            if layer != .buildings {
+                let selection: CGRect
+                if layer == .items { selection = CGRect(x: Double(itemX) / 2 * cell, y: (Double(itemY) / 2 + 16) * cell, width: cell, height: cell) }
+                else { selection = CGRect(x: Double(x + 16) * cell, y: Double(y + 16) * cell, width: cell, height: cell) }
+                context.stroke(Path(selection.insetBy(dx: -1, dy: -1)), with: .color(.white), lineWidth: 3)
+                context.stroke(Path(selection.insetBy(dx: -2, dy: -2)), with: .color(Color.island), lineWidth: 1)
+            }
+        }
+        .contentShape(Rectangle())
+        .gesture(DragGesture(minimumDistance: 0).onChanged { event in
+            if layer == .items {
+                guard let cell = MapCoordinates.item(x: event.location.x, y: event.location.y, zoom: zoom) else { return }
+                itemX = cell.x; itemY = cell.y
+            } else if layer == .buildings {
+                let buildings = (0..<IslandLayout.buildingCount).map { world.building($0, edits: edits) }
+                if let nearest = MapCoordinates.nearestBuilding(x: event.location.x, y: event.location.y, zoom: zoom, buildings: buildings) { selectedBuilding = nearest }
+            } else {
+                guard let cell = MapCoordinates.terrain(x: event.location.x, y: event.location.y, zoom: zoom) else {
+                    previousPoint = nil
+                    return
+                }
+                x = cell.x; y = cell.y
+                if tool != .inspect { paint(to: (cell.x, cell.y), world: world) }
+            }
+        }.onEnded { _ in previousPoint = nil; strokeRecorded = false })
+        .accessibilityLabel("Island map. Use the coordinate steppers and inspector to edit selected tiles.")
+    }
+    private func paint(to point: (Int, Int), world: IslandSnapshot) {
+        let start = previousPoint ?? point
+        let steps = max(abs(point.0 - start.0), abs(point.1 - start.1), 1)
+        let before = model.draft
+        model.change(recordUndo: !strokeRecorded) { draft in
+            for step in 0...steps {
+                let px = start.0 + (point.0 - start.0) * step / steps
+                let py = start.1 + (point.1 - start.1) * step / steps
+                for dx in -(brushSize / 2)...(brushSize / 2) { for dy in -(brushSize / 2)...(brushSize / 2) {
+                    guard let index = try? IslandLayout.terrainIndex(x: px + dx, y: py + dy) else { continue }
+                    var tile = world.terrain(index, edits: draft.island)
+                    if tool == .ground { tile.ground = ground; tile.angle = angle; tile.variation = 0; tile.elevation = elevation }
+                    else { tile.path = path; tile.pathAngle = angle; tile.pathVariation = 0 }
+                    draft.island.terrain[index] = tile
+                } }
+            }
+        }
+        if model.draft != before { strokeRecorded = true }
+        previousPoint = point
+    }
+    private func tileColor(_ tile: TerrainTile, x: Int, y: Int, world: IslandSnapshot) -> Color {
+        let acre = Int(world.main.u16(IslandLayout.acres + ((y / 16 + 1) * 9 + (x / 16 + 1)) * 2))
+        if acre != 0 {
+            let offset = acre * 4096 + 4 * ((y % 16) * 64 + x % 16)
+            if offset < Self.acres.count {
+                let type = Self.acres[offset]
+                if type != 7 {
+                    let colors: [UInt8: (Double, Double, Double)] = [0: (70,120,64), 1: (128,215,195), 3: (192,192,192), 4: (240,230,170), 5: (128,215,195), 6: (255,128,128), 29: (232,222,162), 41: (118,122,132), 42: (128,133,147), 44: (62,112,56), 45: (118,122,132), 46: (120,207,187), 49: (190,98,98)]
+                    if let c = colors[type] { return Color(red: c.0 / 255, green: c.1 / 255, blue: c.2 / 255) }
+                }
+            }
+        }
+        if tile.path != 0 {
+            switch pathBase(tile.path) {
+            case 0x47: return Color(red: 0.68, green: 0.48, blue: 0.30)
+            case 0x94: return Color(red: 0.67, green: 0.32, blue: 0.26)
+            case 0xA9: return Color(red: 0.42, green: 0.30, blue: 0.20)
+            case 0xBE: return .init(red: 0.80, green: 0.80, blue: 0.71)
+            case 0xD3: return .init(red: 0.91, green: 0.84, blue: 0.61)
+            case 0xE8: return .init(red: 0.52, green: 0.65, blue: 0.72)
+            case 0xFD: return .init(red: 0.67, green: 0.53, blue: 0.37)
+            default: return .init(red: 0.68, green: 0.69, blue: 0.66)
+            }
+        }
+        if tile.isWater { return .init(red: 0.50, green: 0.84, blue: 0.77) }
+        let level = Double(min(tile.elevation, 3))
+        return .init(red: 0.30 + level * 0.10, green: 0.55 + level * 0.08, blue: 0.31 + level * 0.07)
+    }
+}

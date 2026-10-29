@@ -1,0 +1,16 @@
+// swift-tools-version: 6.0
+import PackageDescription
+
+let package = Package(
+    name: "ACNHSaveEditor",
+    platforms: [.macOS(.v14)],
+    products: [.executable(name: "ACNHSaveEditor", targets: ["ACNHMac"])],
+    targets: [
+        .target(name: "SaveCrypto", publicHeadersPath: "include"),
+        .target(name: "ACNHCore", dependencies: ["SaveCrypto"]),
+        .executableTarget(name: "ACNHMac", dependencies: ["ACNHCore"], resources: [.process("Resources")]),
+        .testTarget(name: "ACNHCoreTests", dependencies: ["ACNHCore", "SaveCrypto"])
+    ],
+    swiftLanguageModes: [.v5],
+    cxxLanguageStandard: .cxx17
+)

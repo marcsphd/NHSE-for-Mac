@@ -1,0 +1,19 @@
+*.zip
+ACNH_Master_Prompt.txt
+release_v1.3.0/
+zipstage/
+
+# Local build artifacts (never commit)
+/build/
+*.nro
+*.elf
+*.nacp
+/romfs/
+/freshdump/
+/font.ttf
+/items.txt
+
+# Internal Docs & Build Folders
+ACNH_Master_Prompt.md
+*MASTER COPY KIT*.md
+icon.jpg
