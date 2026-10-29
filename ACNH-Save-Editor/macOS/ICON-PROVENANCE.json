@@ -1,0 +1,26 @@
+{
+  "generator": "Built-in image_gen tool",
+  "artwork": "Original generated concepts preserved without background or artwork edits; ICNS files contain standard resized representations.",
+  "default": {
+    "id": "06-inventory-tiles",
+    "name": "Inventory Tiles",
+    "file": "06-inventory-tiles.png",
+    "prompt": "Use case: logo-brand. Asset type: one finished macOS application icon concept, square 1024 by 1024. App: NHSE for Mac, an independent Animal Crossing New Horizons island and inventory save editor. Create exactly ONE icon, not a sheet or collage. Art direction: A bold two-by-two arrangement of four rounded inventory cells: three cream and pale sage cells, with a large jade leaf occupying the lower-right cell and a small golden selection corner. Deep turquoise rounded-square app tile. Crisp modern dimensional interface-inspired emblem, generous clear spacing. Composition: centered icon tile filling roughly 88% of the square canvas, consistent generous rounded corners and balanced safe margins; neutral very pale backdrop outside the tile. Design must read instantly at small Dock sizes. Deliver a polished standalone icon design, not a device screenshot or presentation mockup. No text, no labels, no numbers, no watermark, no Nintendo or Apple corporate logos. Use original symbols. Keep the surrounding canvas opaque.",
+    "original": "Design/Icon Concepts/06-inventory-tiles.png",
+    "sha256": "c0d1cf29c7ab48b4d542704bcae5a80ae3d1c9bbf4a1516cac73f2a5f289b2b8",
+    "source": "AppIcon.png",
+    "icon": "AppIcon.icns",
+    "icnsSha256": "7711435f0ddca7b2b92a4668f3e0917e51c60aed2833736e0e57feb84abf0cb4"
+  },
+  "alternate": {
+    "id": "01-leaf-and-pencil",
+    "name": "Leaf & Pencil",
+    "file": "01-leaf-and-pencil.png",
+    "prompt": "Use case: logo-brand. Asset type: one finished macOS application icon concept, square 1024 by 1024. App: NHSE for Mac, an independent Animal Crossing New Horizons island and inventory save editor. Create exactly ONE icon, not a sheet or collage. Art direction: An oversized mint-jade island leaf with one elegantly diagonal golden-yellow pencil crossing its lower right edge. Warm ivory rounded-square app tile, tactile matte enamel, very subtle dimensional shading. The leaf and pencil form one memorable bold silhouette. Composition: centered icon tile filling roughly 88% of the square canvas, consistent generous rounded corners and balanced safe margins; neutral very pale backdrop outside the tile. Design must read instantly at small Dock sizes. Deliver a polished standalone icon design, not a device screenshot or presentation mockup. No text, no labels, no numbers, no watermark, no Nintendo or Apple corporate logos. Use original symbols. Keep the surrounding canvas opaque.",
+    "original": "Design/Icon Concepts/01-leaf-and-pencil.png",
+    "sha256": "33f7835b80844ede8ca449015f52b3dfd724ea202d13617d8fc9fa90ef862b3f",
+    "source": "IconAlternates/LeafAndPencil.png",
+    "icon": "IconAlternates/LeafAndPencil.icns",
+    "icnsSha256": "ea3e0b29137e2ad634ee5c56d71d84a008036d58cd5b9f47d56368a8f2cf1946"
+  }
+}

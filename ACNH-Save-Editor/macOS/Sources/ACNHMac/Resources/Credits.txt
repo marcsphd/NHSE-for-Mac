@@ -1,4 +1,4 @@
-ACNH Save Editor for Mac — 1.4.1
+ACNH Save Editor for Mac — 1.4.2
 
 An independent native SwiftUI adaptation primarily based on kwsch/NHSE.
 Primary reference: https://github.com/kwsch/NHSE
@@ -14,3 +14,5 @@ The native Mac port is free software under GPL-3.0. You may copy, modify, and re
 
 This is an independent modified port, not an official upstream release.
 Not affiliated with Nintendo.
+
+App icon: Inventory Tiles (concept 6), generated for NHSE for Mac using the built-in image generator. Leaf & Pencil (concept 1) is retained in the source as an alternate.

@@ -6,6 +6,16 @@ An independent native SwiftUI macOS adaptation primarily based on [NHSE](https:/
 
 Extract the app release ZIP into a local folder such as Downloads, then drag `ACNH Save Editor.app` to Applications and open it there. Keep the ZIP as the portable copy, especially when storing releases in a cloud-synced project folder. The local build is ad-hoc signed; it is not Developer ID signed or notarized for public distribution.
 
+## App icon
+
+The default icon is **Inventory Tiles** (concept 6). Its editable source image is `AppIcon.png`, and the app bundles `AppIcon.icns`. **Leaf & Pencil** (concept 1) is preserved as both PNG and ICNS in `IconAlternates/` for later testing.
+
+Recreate the default icon with `./scripts/make-app-icon.sh AppIcon.png AppIcon.icns`. To build with the alternate without replacing the default:
+
+```sh
+ACNH_APP_ICON="$PWD/IconAlternates/LeafAndPencil.icns" ACNH_BUILD_SCRATCH=/private/tmp/NHSE-Mac-Build ACNH_BUILD_OUTPUT=/private/tmp/NHSE-Mac-Alternate ./scripts/build-app.sh
+```
+
 ## Use an exported save
 
 1. Fully close Animal Crossing on your Switch. Export a complete save with your save manager and copy that folder to your Mac.

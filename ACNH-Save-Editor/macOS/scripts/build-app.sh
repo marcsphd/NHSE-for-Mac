@@ -6,6 +6,11 @@ TASK_OUTPUT="${ACNH_BUILD_OUTPUT:-$TASK_ROOT/dist}"
 TASK_APP="$TASK_OUTPUT/ACNH Save Editor.app"
 TASK_ARCH="${1:-universal}"
 TASK_SCRATCH="${ACNH_BUILD_SCRATCH:-$TASK_ROOT/.build}"
+TASK_ICON="${ACNH_APP_ICON:-$TASK_ROOT/AppIcon.icns}"
+if [[ ! -f "$TASK_ICON" ]]; then
+    printf 'App icon not found: %s\n' "$TASK_ICON" >&2
+    exit 1
+fi
 export CLANG_MODULE_CACHE_PATH="$TASK_SCRATCH/ModuleCache"
 export SWIFT_MODULECACHE_PATH="$TASK_SCRATCH/SwiftModuleCache"
 swift_package() { swift build "$@" --scratch-path "$TASK_SCRATCH" -debug-info-format none --disable-sandbox --cache-path "$TASK_ROOT/.build/cache" --config-path "$TASK_ROOT/.build/config" --security-path "$TASK_ROOT/.build/security"; }
@@ -22,7 +27,7 @@ for TASK_BUNDLE in "$TASK_BIN"/*.bundle; do
     [[ -d "$TASK_BUNDLE" ]] && cp -R "$TASK_BUNDLE" "$TASK_APP/Contents/Resources/"
 done
 cp Info.plist "$TASK_APP/Contents/Info.plist"
-cp AppIcon.icns "$TASK_APP/Contents/Resources/AppIcon.icns"
+cp "$TASK_ICON" "$TASK_APP/Contents/Resources/AppIcon.icns"
 codesign --force --deep --sign - "$TASK_APP"
 codesign --verify --deep --strict "$TASK_APP"
 cp README.md "$TASK_OUTPUT/Read Me.md"

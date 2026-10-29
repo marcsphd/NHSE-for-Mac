@@ -12,3 +12,7 @@ This independent native Mac editor primarily adapts NHSE save formats and editin
 - Nintendo and Animal Crossing are trademarks of their respective owners. This project is unaffiliated with Nintendo.
 
 The Mac port rewrites the UI and file handling, removes Switch-specific dependencies, adds strict save validation and transactional backups, recalculates save hashes, and removes the original blanket writes to unrelated main.dat fields. It preserves original encryption headers for changed data.
+
+## Mac app icon
+
+The Inventory Tiles app icon (selected concept 6) and saved Leaf & Pencil alternate (concept 1) were generated specifically for this project using the built-in image generator. They replace the earlier app icon; the upstream Switch icon remains in the original Switch sources. Original concepts and preparation prompts are preserved with the project. See `ICON-PROVENANCE.json`.

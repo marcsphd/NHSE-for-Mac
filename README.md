@@ -2,7 +2,7 @@
 
 A native SwiftUI Animal Crossing: New Horizons save editor for macOS, primarily adapted from [NHSE](https://github.com/kwsch/NHSE). The initial foundation and selected save-cryptography routines come from [ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor).
 
-Current Mac version: **1.4.1**. Requires **macOS 14 or later**. Universal builds support Apple silicon and Intel. Supported save revisions: **ACNH 3.0.0–3.0.3**.
+Current Mac version: **1.4.2**. Requires **macOS 14 or later**. Universal builds support Apple silicon and Intel. Supported save revisions: **ACNH 3.0.0–3.0.3**.
 
 ## Features
 
@@ -12,6 +12,8 @@ Current Mac version: **1.4.1**. Requires **macOS 14 or later**. Universal builds
 - Island map editing for terrain, paths, outdoor items, and building positions.
 - Animal-villager identities, personality, catchphrases, moving-out state, and basic friendship.
 - Money editing, saved pocket loadouts, undo/redo, change review, full-save exports, verified backups, and restore.
+
+The app uses the **Inventory Tiles** icon (concept 6). **Leaf & Pencil** (concept 1) is saved as an [alternate icon](ACNH-Save-Editor/macOS/IconAlternates/README.md) for future testing.
 
 ### Feature comparison
 

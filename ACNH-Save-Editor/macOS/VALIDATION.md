@@ -1,3 +1,12 @@
+# Validation — Mac version 1.4.2 — 29 October 2026
+
+## App icon selection — 1.4.2
+
+- Inventory Tiles (concept 6) is the default app icon. Its PNG is byte-identical to the selected original generated concept. Leaf & Pencil (concept 1) is preserved unchanged as the alternate PNG, with a matching ICNS file and a separate test-app package.
+- Both ICNS files contain standard macOS representations through 1024 pixels, including Retina sizes. Container lengths and representation records were checked. Icon generation uses the system sips and iconutil tools for format conversion and resizing; no background cleanup or artwork changes are included in the delivered icons. The generation prompts and original checksums are recorded in ICON-PROVENANCE.json.
+- The build script accepts ACNH_APP_ICON to choose the alternate without replacing AppIcon.icns. Built universal arm64/x86_64 default and alternate apps, verified each bundled icon against its intended source, and confirmed both have version 1.4.2 (build 11). Strict ad-hoc signature verification passed for both packages.
+- This cosmetic release does not change save-editing logic. The last full automated suite remains the 55-test v1.4.1 run documented below. No personal saves were opened or modified for icon verification. Intel was compiled but not run; Switch import remains untested.
+
 # Validation — Mac version 1.4.1 — 28 October 2026
 
 ## Multiple-slot inventory editing — 1.4.1

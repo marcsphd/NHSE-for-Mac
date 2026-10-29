@@ -22,3 +22,8 @@ Villager[0-7]/
 .env
 .env.*
 !.env.example
+
+# Keep only the selected icon artwork and its saved alternate in Git
+/Design/Icon Concepts/*
+!/Design/Icon Concepts/01-leaf-and-pencil.png
+!/Design/Icon Concepts/06-inventory-tiles.png
