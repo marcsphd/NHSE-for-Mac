@@ -2,7 +2,7 @@
 
 A native SwiftUI Animal Crossing: New Horizons save editor for macOS, primarily adapted from [NHSE](https://github.com/kwsch/NHSE). The initial foundation and selected save-cryptography routines come from [ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor).
 
-Current Mac version: **1.4.2**. Requires **macOS 14 or later**. Universal builds support Apple silicon and Intel. Supported save revisions: **ACNH 3.0.0–3.0.3**.
+Current Mac version: **1.4.3**. Requires **macOS 14 or later**. Universal builds support Apple silicon and Intel. Supported save revisions: **ACNH 3.0.0–3.0.3**.
 
 ## Download and install
 

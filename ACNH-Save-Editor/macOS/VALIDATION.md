@@ -1,3 +1,13 @@
+# Validation — Mac version 1.4.3 — 29 October 2026
+
+## Transparent Dock icon — 1.4.3
+
+- Replaced the opaque original Inventory Tiles PNG with its transparent-background preparation from the built-in image generator. The chosen design remains concept 6; the original concept and saved concept 1 alternate are preserved. ICON-PROVENANCE.json records original and prepared hashes plus the preparation prompt.
+- Added scripts/verify-icon-transparency.swift as a read-only asset regression check. The old opaque concept fails the check; the corrected source passes. Decoded the generated ICNS with iconutil and verified all ten representations, from 16 through 1024 pixels, have transparent exterior corners and opaque centers. The checker requires alpha transparency, preventing the original opaque white canvas from returning.
+- Visually inspected the actual decoded 64-pixel ICNS representation against a Dock-colored background beside the old artwork. The white frame is absent from the corrected icon.
+- Built universal arm64/x86_64 version 1.4.3 (build 12), verified that its bundled icon exactly matches the corrected ICNS, and checked the app's strict ad-hoc signature. No save-editor logic or save data changed. The last full automated save-editor suite is the 55-test v1.4.1 run documented below.
+- Public DMG and ZIP downloads include the corrected app. The app remains ad-hoc signed and not notarized; the existing first-launch guidance still applies.
+
 # Validation — Mac version 1.4.2 — 29 October 2026
 
 ## App icon selection — 1.4.2

@@ -18,7 +18,7 @@ Keep the downloaded archive as the portable copy, especially when storing releas
 
 ## App icon
 
-The default icon is **Inventory Tiles** (concept 6). Its editable source image is `AppIcon.png`, and the app bundles `AppIcon.icns`. **Leaf & Pencil** (concept 1) is preserved as both PNG and ICNS in `IconAlternates/` for later testing.
+The default icon is **Inventory Tiles** (concept 6), with transparent outer corners so no white frame appears in the Dock. Its editable source image is `AppIcon.png`, and the app bundles `AppIcon.icns`. **Leaf & Pencil** (concept 1) is preserved as both PNG and ICNS in `IconAlternates/` for later testing.
 
 Recreate the default icon with `./scripts/make-app-icon.sh AppIcon.png AppIcon.icns`. To build with the alternate without replacing the default:
 

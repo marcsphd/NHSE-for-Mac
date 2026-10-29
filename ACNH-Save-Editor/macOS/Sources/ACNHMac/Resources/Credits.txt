@@ -1,4 +1,4 @@
-ACNH Save Editor for Mac — 1.4.2
+ACNH Save Editor for Mac — 1.4.3
 
 An independent native SwiftUI adaptation primarily based on kwsch/NHSE.
 Primary reference: https://github.com/kwsch/NHSE

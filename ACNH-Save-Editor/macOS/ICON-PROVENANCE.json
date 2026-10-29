@@ -1,16 +1,22 @@
 {
   "generator": "Built-in image_gen tool",
-  "artwork": "Original generated concepts preserved without background or artwork edits; ICNS files contain standard resized representations.",
+  "artwork": "Original concepts are preserved in Design. The active Inventory Tiles icon uses a transparent-background preparation generated with the built-in image tool. The saved Leaf & Pencil alternate is unchanged. ICNS representations are resized with macOS tools.",
   "default": {
     "id": "06-inventory-tiles",
     "name": "Inventory Tiles",
     "file": "06-inventory-tiles.png",
     "prompt": "Use case: logo-brand. Asset type: one finished macOS application icon concept, square 1024 by 1024. App: NHSE for Mac, an independent Animal Crossing New Horizons island and inventory save editor. Create exactly ONE icon, not a sheet or collage. Art direction: A bold two-by-two arrangement of four rounded inventory cells: three cream and pale sage cells, with a large jade leaf occupying the lower-right cell and a small golden selection corner. Deep turquoise rounded-square app tile. Crisp modern dimensional interface-inspired emblem, generous clear spacing. Composition: centered icon tile filling roughly 88% of the square canvas, consistent generous rounded corners and balanced safe margins; neutral very pale backdrop outside the tile. Design must read instantly at small Dock sizes. Deliver a polished standalone icon design, not a device screenshot or presentation mockup. No text, no labels, no numbers, no watermark, no Nintendo or Apple corporate logos. Use original symbols. Keep the surrounding canvas opaque.",
     "original": "Design/Icon Concepts/06-inventory-tiles.png",
-    "sha256": "c0d1cf29c7ab48b4d542704bcae5a80ae3d1c9bbf4a1516cac73f2a5f289b2b8",
+    "sha256": "e5043d8e146f79c3da2211633117b72dae8f5bd7cf5e4c4955f5e25547c6f6c1",
     "source": "AppIcon.png",
     "icon": "AppIcon.icns",
-    "icnsSha256": "7711435f0ddca7b2b92a4668f3e0917e51c60aed2833736e0e57feb84abf0cb4"
+    "icnsSha256": "3f5b6080e94406dfb0877313d4dad65b00f2e3bd0ac1e5d1d94424d30c7157e5",
+    "originalSha256": "c0d1cf29c7ab48b4d542704bcae5a80ae3d1c9bbf4a1516cac73f2a5f289b2b8",
+    "preparation": {
+      "generator": "Built-in image_gen tool",
+      "transparent_background": true,
+      "prompt": "Remove only the near-white background outside the rounded-square tile, preserving the colored tile and all internal artwork. Keep the icon centered and square, with genuine alpha transparency outside the tile."
+    }
   },
   "alternate": {
     "id": "01-leaf-and-pencil",
