@@ -1,3 +1,10 @@
+# Validation — Mac version 1.4.4 — 29 October 2026
+
+## App icon in Overview — 1.4.4
+
+- The loaded-save and preview Overview headers show the current application icon at 80 points next to the heading. The welcome screen uses the same icon at 128 points. Both read NSApplication.applicationIconImage, so an alternate-icon build displays its own bundled icon without a duplicate PNG resource.
+- Universal arm64/x86_64 compilation and strict ad-hoc signing completed. The bundled transparent ICNS is unchanged from v1.4.3. This cosmetic change does not alter save-editing logic; the last full automated save-editor run remains the 55-test v1.4.1 suite below.
+
 # Validation — Mac version 1.4.3 — 29 October 2026
 
 ## Transparent Dock icon — 1.4.3

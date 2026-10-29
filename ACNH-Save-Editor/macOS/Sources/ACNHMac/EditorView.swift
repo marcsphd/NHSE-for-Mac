@@ -90,10 +90,7 @@ struct EditorView: View {
     private var welcome: some View {
         VStack(spacing: 24) {
             Spacer()
-            ZStack {
-                RoundedRectangle(cornerRadius: 30).fill(Color.island.opacity(0.09)).frame(width: 124, height: 124)
-                Image(systemName: "leaf.fill").font(.system(size: 64)).foregroundStyle(Color.island).rotationEffect(.degrees(-15))
-            }
+            appIcon(size: 128)
             VStack(spacing: 10) {
                 Text("A little more island time.").font(.system(size: 32, weight: .semibold, design: .rounded))
                 Text("Shape your island, edit villagers, and organize your items\nfrom an exported Animal Crossing save.")
@@ -125,6 +122,12 @@ struct EditorView: View {
             Text(subtitle).font(.callout).foregroundStyle(.secondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
+    private func appIcon(size: CGFloat) -> some View {
+        Image(nsImage: NSApp.applicationIconImage ?? NSImage(named: NSImage.applicationIconName) ?? NSImage())
+            .resizable().interpolation(.high).scaledToFit()
+            .frame(width: size, height: size)
+            .accessibilityLabel("NHSE for Mac app icon")
+    }
     private var demoBanner: some View {
         Label("Preview · Example data. Open your save to export or save edits.", systemImage: "eye")
             .font(.callout).padding(12).frame(maxWidth: .infinity, alignment: .leading)
@@ -133,7 +136,10 @@ struct EditorView: View {
     private var overview: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                heading("Make yourself at home.", model.session.map { "\($0.folder.lastPathComponent) · ACNH \($0.version) · Resident 1" } ?? "A preview of your island’s essentials.")
+                HStack(spacing: 20) {
+                    appIcon(size: 80)
+                    heading("Make yourself at home.", model.session.map { "\($0.folder.lastPathComponent) · ACNH \($0.version) · Resident 1" } ?? "A preview of your island’s essentials.")
+                }
                 if model.demo { demoBanner }
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                     economyCard(0, symbol: "bag", color: .orange, subtitle: "Bells on hand")
