@@ -1,6 +1,6 @@
 # Notices and provenance
 
-This is a modified native Mac port, not an official upstream release.
+This independent native Mac editor primarily adapts NHSE save formats and editing features. ACNH-Save-Editor provided the initial foundation and reused encryption and hashing code. It is not an official release of either upstream project.
 
 - Original application, item names, icon, and portable AES / XorShift / integer / Murmur3 routines: **cbreezy210/ACNH-Save-Editor**, commit `731c2284195bf4a56699709fb053a2124cd8fba2`, MIT, copyright 2026 cbreezy210. Original license is retained at the repository root and bundled as `Upstream-LICENSE.txt`.
 - Save format reference, version descriptors, region offsets, item-kind metadata, and stack limits: **kwsch/NHSE**, GPL-3.0. See `NHSE.Core/Hashing/FileHashRevision.cs`, `Save/Meta/RevisionChecker.cs`, `Save/Offsets/PersonalOffsets30.cs`, `Save/Offsets/MainSaveOffsets30.cs`, `Structures/Item/ItemInfo.cs`, and `Resources/byte/item_kind.bin`. https://github.com/kwsch/NHSE . Reference commit is recorded in `REFERENCE-REVISION.txt`.

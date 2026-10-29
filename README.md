@@ -1,6 +1,6 @@
 # NHSE for Mac
 
-A native SwiftUI Animal Crossing: New Horizons save editor for macOS, adapted from [ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor) and [NHSE](https://github.com/kwsch/NHSE).
+A native SwiftUI Animal Crossing: New Horizons save editor for macOS, primarily adapted from [NHSE](https://github.com/kwsch/NHSE). The initial foundation and selected save-cryptography routines come from [ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor).
 
 Current Mac version: **1.4.1**. Requires **macOS 14 or later**. Universal builds support Apple silicon and Intel. Supported save revisions: **ACNH 3.0.0–3.0.3**.
 
@@ -37,6 +37,8 @@ Open a complete exported save folder containing `main.dat`, `mainHeader.dat`, an
 Personal save files, build caches, and packaged application bundles are excluded from this repository.
 
 ## Source and credits
+
+[NHSE](https://github.com/kwsch/NHSE) is the primary reference for save structures, player and island settings, map and villager editing, home storage, item metadata, and bundled inventory artwork. [ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor) provided the original foundation and reused encryption and hashing routines. The Mac interface and save-management workflows are implemented natively in SwiftUI.
 
 - [Native Mac source and guide](ACNH-Save-Editor/macOS/README.md)
 - [Original Switch source](ACNH-Save-Editor/README.md)

@@ -2,7 +2,7 @@
 
 ## Native macOS port
 
-A native SwiftUI Mac app is available in [`macOS/`](macOS/README.md), with player/island settings, a home Storage tab, NHSE-based map and animal-villager editors, item icons, unlocked pockets, item search, loadouts, verified backups, and export/restore workflows. This is a partial NHSE port; see the Mac README for supported settings and remaining limitations. Build with `cd macOS && ./scripts/build-app.sh`. Requires macOS 14 or later; supports ACNH save revisions 3.0.0–3.0.3. The original Switch version is described below.
+A native SwiftUI Mac app is available in [`macOS/`](macOS/README.md), with player/island settings, a home Storage tab, NHSE-based map and animal-villager editors, item icons, unlocked pockets, item search, loadouts, verified backups, and export/restore workflows. The Mac editor is primarily adapted from [NHSE](https://github.com/kwsch/NHSE), with this Switch project providing the initial foundation and reused cryptography routines. It is a partial NHSE adaptation; see the Mac README for supported settings and remaining limitations. Build with `cd macOS && ./scripts/build-app.sh`. Requires macOS 14 or later; supports ACNH save revisions 3.0.0–3.0.3. The original Switch version is described below.
 **The first 100% native Switch save editor for Animal Crossing: New Horizons.**
 
 ![Status](https://img.shields.io/badge/Status-Stable-green?style=flat-square)

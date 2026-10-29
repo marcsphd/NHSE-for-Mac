@@ -1,7 +1,10 @@
 ACNH Save Editor for Mac — 1.4.1
 
-A native SwiftUI port of cbreezy210/ACNH-Save-Editor.
-Original project: https://github.com/cbreezy210/ACNH-Save-Editor
+An independent native SwiftUI adaptation primarily based on kwsch/NHSE.
+Primary reference: https://github.com/kwsch/NHSE
+
+Initial foundation and selected save-cryptography routines: cbreezy210/ACNH-Save-Editor.
+https://github.com/cbreezy210/ACNH-Save-Editor
 Original application © 2026 cbreezy210, MIT.
 
 Save-format metadata, player/island settings and identity propagation, map and villager structures, villager names, portraits, terrain identifiers and collision data, item stack limits, and inventory icons/mappings: kwsch/NHSE contributors, GPL-3.0.

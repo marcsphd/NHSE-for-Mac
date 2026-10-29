@@ -1,6 +1,6 @@
 # ACNH Save Editor for Mac
 
-A native SwiftUI macOS port of [cbreezy210/ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor). Requires macOS 14 or later. The universal build supports Apple silicon and Intel Macs. Works offline without third-party runtimes.
+An independent native SwiftUI macOS adaptation primarily based on [NHSE](https://github.com/kwsch/NHSE), using its save-format research and editor behavior. [cbreezy210/ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor) provided the initial foundation and selected save-cryptography routines. Requires macOS 14 or later. The universal build supports Apple silicon and Intel Macs. Works offline without third-party runtimes.
 
 ## Open the app
 
