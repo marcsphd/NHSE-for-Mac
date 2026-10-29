@@ -25,8 +25,6 @@ Requires macOS 14 or later. One download supports both Apple silicon and Intel. 
 - Animal-villager identities, personality, catchphrases, moving-out state, and basic friendship.
 - Money editing, saved pocket loadouts, undo/redo, change review, full-save exports, verified backups, and restore.
 
-The app uses the **Inventory Tiles** icon (concept 6). **Leaf & Pencil** (concept 1) is saved as an [alternate icon](ACNH-Save-Editor/macOS/IconAlternates/README.md) for future testing.
-
 ### Feature comparison
 
 This compares NHSE with **NHSE for Mac 1.4.1**. “Limited” means the Mac app implements only the scope described below.
