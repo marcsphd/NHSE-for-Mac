@@ -4,7 +4,17 @@ An independent native SwiftUI macOS adaptation primarily based on [NHSE](https:/
 
 ## Open the app
 
-Extract the app release ZIP into a local folder such as Downloads, then drag `ACNH Save Editor.app` to Applications and open it there. Keep the ZIP as the portable copy, especially when storing releases in a cloud-synced project folder. The local build is ad-hoc signed; it is not Developer ID signed or notarized for public distribution.
+**[Download for Mac (.dmg)](https://github.com/marcsphd/NHSE-for-Mac/releases/latest/download/NHSE-for-Mac.dmg)** · [ZIP download](https://github.com/marcsphd/NHSE-for-Mac/releases/latest/download/NHSE-for-Mac.zip) · [All releases](https://github.com/marcsphd/NHSE-for-Mac/releases)
+
+1. Download and open the DMG.
+2. Drag **ACNH Save Editor.app** onto the **Applications** shortcut.
+3. Eject the disk image, then open the app from **Applications**.
+
+Requires macOS 14 or later. One download supports both Apple silicon and Intel. No Xcode, Homebrew, terminal commands, or separate runtime is needed to use the app.
+
+**First launch:** this build is ad-hoc signed and has not been notarized by Apple. If macOS blocks it and you trust this download, open **System Settings → Privacy & Security → Open Anyway** after attempting to launch it. See [Apple's first-launch instructions](https://support.apple.com/102445). A launch without this approval requires Developer ID signing and notarization, which are not yet available for this project.
+
+Keep the downloaded archive as the portable copy, especially when storing releases in a cloud-synced project folder.
 
 ## App icon
 

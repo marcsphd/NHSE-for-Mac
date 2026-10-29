@@ -4,6 +4,18 @@ A native SwiftUI Animal Crossing: New Horizons save editor for macOS, primarily 
 
 Current Mac version: **1.4.2**. Requires **macOS 14 or later**. Universal builds support Apple silicon and Intel. Supported save revisions: **ACNH 3.0.0–3.0.3**.
 
+## Download and install
+
+**[Download for Mac (.dmg)](https://github.com/marcsphd/NHSE-for-Mac/releases/latest/download/NHSE-for-Mac.dmg)** · [ZIP download](https://github.com/marcsphd/NHSE-for-Mac/releases/latest/download/NHSE-for-Mac.zip) · [All releases](https://github.com/marcsphd/NHSE-for-Mac/releases)
+
+1. Download and open the DMG.
+2. Drag **ACNH Save Editor.app** onto the **Applications** shortcut.
+3. Eject the disk image, then open the app from **Applications**.
+
+Requires macOS 14 or later. One download supports both Apple silicon and Intel. No Xcode, Homebrew, terminal commands, or separate runtime is needed to use the app.
+
+**First launch:** this build is ad-hoc signed and has not been notarized by Apple. If macOS blocks it and you trust this download, open **System Settings → Privacy & Security → Open Anyway** after attempting to launch it. See [Apple's first-launch instructions](https://support.apple.com/102445). A launch without this approval requires Developer ID signing and notarization, which are not yet available for this project.
+
 ## Features
 
 - Player settings: primary resident name and birthday.
