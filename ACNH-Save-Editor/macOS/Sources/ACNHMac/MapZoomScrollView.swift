@@ -7,6 +7,9 @@ struct MapZoomScrollView<Content: View>: NSViewRepresentable {
     @Binding var scale: Double
     @Binding var isPinching: Bool
     let mapSize: NSSize
+    var onPointerBegan: () -> Void
+    var onPointer: (NSPoint) -> Void
+    var onPointerEnded: () -> Void
     @ViewBuilder var content: () -> Content
 
     func makeNSView(context: Context) -> MapScrollView {
@@ -24,7 +27,7 @@ struct MapZoomScrollView<Content: View>: NSViewRepresentable {
         scroll.allowsMagnification = false
         scroll.minMagnification = 1
         scroll.maxMagnification = 5
-        let host = NSHostingView(rootView: content())
+        let host = MapDocumentView(rootView: content())
         host.sizingOptions = []
         host.frame = NSRect(origin: .zero, size: mapSize)
         scroll.documentView = host
@@ -32,11 +35,52 @@ struct MapZoomScrollView<Content: View>: NSViewRepresentable {
     }
 
     func updateNSView(_ scroll: MapScrollView, context: Context) {
-        (scroll.documentView as? NSHostingView<Content>)?.rootView = content()
+        if let host = scroll.documentView as? MapDocumentView {
+            host.rootView = content()
+            host.onPointerBegan = onPointerBegan
+            host.onPointer = onPointer
+            host.onPointerEnded = onPointerEnded
+        }
         scroll.scaleChanged = { scale = $0 }
         scroll.pinchChanged = { isPinching = $0 }
         if abs(scroll.magnification - scale) > 0.000001 {
             scroll.zoom(to: scale)
+        }
+    }
+
+    /// SwiftUI gestures inside a separately hosted, magnified document can lose
+    /// mouse events. Own pointer delivery here, before SwiftUI's rendering tree.
+    final class MapDocumentView: NSHostingView<Content> {
+        var onPointerBegan: (() -> Void)?
+        var onPointer: ((NSPoint) -> Void)?
+        var onPointerEnded: (() -> Void)?
+
+        override var acceptsFirstResponder: Bool { true }
+        override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            guard bounds.contains(convert(point, from: superview)) else { return nil }
+            return self
+        }
+
+        func mapPoint(fromWindow point: NSPoint) -> NSPoint {
+            let local = convert(point, from: nil)
+            return NSPoint(x: local.x - bounds.minX,
+                           y: isFlipped ? local.y - bounds.minY : bounds.maxY - local.y)
+        }
+
+        override func mouseDown(with event: NSEvent) {
+            window?.makeFirstResponder(self)
+            onPointerBegan?()
+            onPointer?(mapPoint(fromWindow: event.locationInWindow))
+        }
+
+        override func mouseDragged(with event: NSEvent) {
+            onPointer?(mapPoint(fromWindow: event.locationInWindow))
+        }
+
+        override func mouseUp(with event: NSEvent) {
+            onPointerEnded?()
         }
     }
 

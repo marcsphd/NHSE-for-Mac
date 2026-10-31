@@ -73,7 +73,15 @@ struct IslandMapView: View {
                 }.font(.caption)
                 if let world = model.world {
                     MapZoomScrollView(scale: $zoomScale, isPinching: $isPinching,
-                                      mapSize: NSSize(width: 144 * MapZoom.pointsPerTile, height: 128 * MapZoom.pointsPerTile)) {
+                                      mapSize: NSSize(width: 144 * MapZoom.pointsPerTile, height: 128 * MapZoom.pointsPerTile),
+                                      onPointerBegan: {
+                                          isPinching = false
+                                          mapFocused = true
+                                          previousPoint = nil
+                                          strokeRecorded = false
+                                      },
+                                      onPointer: { selectMapPoint($0, world: world) },
+                                      onPointerEnded: { previousPoint = nil; strokeRecorded = false }) {
                         // Render at the visible resolution while the native document
                         // stays fixed, keeping artwork crisp without relaying out scrolling.
                         mapCanvas(world).frame(width: 144 * zoom, height: 128 * zoom)
@@ -501,25 +509,28 @@ struct IslandMapView: View {
         .onCopyCommand(perform: layer == .items ? copyProviders : nil)
         .onPasteCommand(of: layer == .items ? [Self.mapItemType] : [], perform: pasteProviders)
         .onDeleteCommand(perform: layer == .items ? { model.clearMapItem(at: selectedItemIndex) } : nil)
-        .gesture(DragGesture(minimumDistance: 0).onChanged { event in
-            guard !isPinching else { return }
-            mapFocused = true
-            if layer == .items {
-                guard let cell = MapCoordinates.item(x: event.location.x, y: event.location.y, zoom: zoom) else { return }
-                selectItemCell(cell)
-            } else if layer == .buildings {
-                let buildings = (0..<IslandLayout.buildingCount).map { world.building($0, edits: edits) }
-                if let nearest = MapCoordinates.buildingAt(x: event.location.x, y: event.location.y, zoom: zoom, buildings: buildings) { selectedBuilding = nearest }
-            } else {
-                guard let cell = MapCoordinates.terrain(x: event.location.x, y: event.location.y, zoom: zoom) else {
-                    previousPoint = nil
-                    return
-                }
-                x = cell.x; y = cell.y
-                if tool != .inspect { paint(to: (cell.x, cell.y), world: world) }
-            }
-        }.onEnded { _ in previousPoint = nil; strokeRecorded = false })
         .accessibilityLabel("Island map. Click to focus. Arrow keys select tiles; pinch to zoom. In Items, Command C copies, Command V pastes, and Delete removes the selected object.")
+    }
+    private func selectMapPoint(_ point: NSPoint, world: IslandSnapshot) {
+        // The native hosting view converts pointer positions to the fixed logical
+        // document. Drawing resolution changes independently of these coordinates.
+        let cellSize = MapZoom.pointsPerTile
+        if layer == .items {
+            guard let cell = MapCoordinates.item(x: point.x, y: point.y, zoom: cellSize) else { return }
+            selectItemCell(cell)
+        } else if layer == .buildings {
+            let buildings = (0..<IslandLayout.buildingCount).map { world.building($0, edits: edits) }
+            if let nearest = MapCoordinates.buildingAt(x: point.x, y: point.y, zoom: cellSize, buildings: buildings) {
+                selectedBuilding = nearest
+            }
+        } else {
+            guard let cell = MapCoordinates.terrain(x: point.x, y: point.y, zoom: cellSize) else {
+                previousPoint = nil
+                return
+            }
+            x = cell.x; y = cell.y
+            if tool != .inspect { paint(to: (cell.x, cell.y), world: world) }
+        }
     }
     private func paint(to point: (Int, Int), world: IslandSnapshot) {
         let start = previousPoint ?? point

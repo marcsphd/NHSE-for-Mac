@@ -247,3 +247,14 @@ All 21 selected tests passed: three new AppKit regression tests cover centering 
 All 77 automated tests passed: 74 core tests and three native map-viewport tests, with zero failures. The full run includes save validation, encryption, backups and restore, player/island edits, inventory/storage, building plot dimensions, map coordinates, object clipboard integrity, tile snapping, and repeated fractional zoom reversals.
 
 The release app identifies as version 2.0, build 14. Its universal executable contains arm64 and x86_64, both with a macOS 14.0 minimum deployment target. Ad-hoc signature verification passed for the built app and the app inside the read-only mounted DMG. The DMG checksum and ZIP integrity checks passed; both contain the same executable and all 11 contributed example files match their SHA-256 manifest. The app includes 14 building artwork assets. SHA256SUMS.txt accompanies the DMG and ZIP downloads. Developer ID notarization, physical trackpad feel, Intel execution, and importing edits back into the game remain unverified.
+
+
+### Version 2.0 replacement build: mouse selection — 31 October 2026
+
+The initial 2.0 zoom rewrite regressed ordinary mouse selection. Centering and keyboard tests had passed without exercising pointer delivery through the separately hosted SwiftUI canvas. Native document hit testing now targets the full map bounds independently of the rendered SwiftUI content shape. Mouse down/drag/up are handled by the document view and converted into fixed logical map coordinates; selection, building picking, and painting all use those same coordinates. Clicking clears a stale pinch state, restores map focus, and starts a fresh brush stroke.
+
+Native interface checks confirmed an ordinary click at 100% selecting terrain (59, 30), and a 500% click selecting (60, 44). A drag to (62, 46), followed by Right, selected (63, 46), without changing either centered scroll position. At 500%, clicking a planted object selected its root at (166, 96); keyboard copy and a click at (144, 96) allowed paste, Delete, and undo. Clicking a house selected Villager 4’s house at saved coordinates (142, 124). A terrain brush drag changed its selected cell to Flat grass; a single undo restored the original terrain and removed the draft edit.
+
+All 80 tests passed: 74 core tests and six native viewport/input tests. Three added regressions cover pointer targets independent of SwiftUI content shapes, magnified/panned screen-to-map coordinates at preset and fractional zoom, and mouse-down/drag/up delivery as a single stroke. The replacement remains version 2.0, with internal build number 15, as requested. Earlier physical-trackpad, Intel-execution and in-game verification limitations remain.
+
+The replacement universal DMG and ZIP passed package integrity and signature checks. Both identify as version 2.0 (15), contain identical executables, and preserve all 11 example-save manifest hashes.

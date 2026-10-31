@@ -87,7 +87,7 @@ Using a local build folder avoids file-provider metadata interfering with app si
 
 Open a complete exported save folder containing `main.dat`, `mainHeader.dat`, and the resident files. Review your draft, then export an edited copy or save with an automatic backup. Keep a separate original backup and import saves with the game closed.
 
-**77 automated tests passed** for version 2.0, alongside native interface and independent export checks. See the [validation report](ACNH-Save-Editor/macOS/VALIDATION.md). Importing the edited save back into the game remains untested.
+**80 automated tests passed** for version 2.0, alongside native interface and independent export checks. See the [validation report](ACNH-Save-Editor/macOS/VALIDATION.md). Importing the edited save back into the game remains untested.
 
 Personal save files, build caches, and packaged application bundles are excluded from this repository, except for the owner-contributed Yolo save included as the default example island.
 

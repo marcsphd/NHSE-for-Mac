@@ -98,6 +98,10 @@ Buildings use 14 original Animal Crossing-inspired fan icons. Standard houses, s
 
 Explore a Preview loads the complete Yolo island contributed by the project owner. Its terrain, buildings, outdoor objects, resident settings, pockets, and storage come from the included ACNH 3.0.3 save snapshot. The example is tracked in Git at `Sources/ACNHMac/ExampleSave` and included in every build. Preview changes stay in memory; saving and exporting remain disabled, and the owner's original save is untouched.
 
+### Map pointer controls
+
+Click or drag to select terrain tiles, outdoor object cells, or buildings. Mouse input is converted by the native document view into fixed map coordinates, independently of zoom and drawing resolution. Paint Terrain and Paint Paths follow the same pointer conversion; one drag is one undo step.
+
 ### Map keyboard controls
 
 Click the map to focus it, then use the arrow keys to select terrain tiles or item cells. Selection stays within that layer's bounds. Arrow keys move only the selection and leave the map's scroll position unchanged. Pinch on the map for continuous zoom. A native scroll view applies magnification and centering together, with no delayed scroll correction. Zooming keeps the same map point at the center of the viewport; smaller maps are centered in the available space.
