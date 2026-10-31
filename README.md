@@ -1,12 +1,16 @@
-# NHSE for Mac
+# Animal Crossing Save Editor for Mac
 
-A native SwiftUI Animal Crossing: New Horizons save editor for macOS, primarily adapted from [NHSE](https://github.com/kwsch/NHSE). The initial foundation and selected save-cryptography routines come from [ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor).
+Make your island feel more like you. Edit your Animal Crossing: New Horizons save on your Mac: find items for your pockets and home storage, adjust Bells and Nook Miles, customize your residents, and rearrange your island map.
+
+Browse an example island to explore the app, or open your own exported save folder. Review your changes before saving, with automatic backups and restore tools to help you keep your original island.
+
+Built for Mac, with a familiar interface and no extra software to install.
 
 Current Mac version: **2.0**. Requires **macOS 14 or later**. Universal builds support Apple silicon and Intel. Supported save revisions: **ACNH 3.0.0–3.0.3**.
 
 ## Download and install
 
-**[Download for Mac (.dmg)](https://github.com/marcsphd/NHSE-for-Mac/releases/latest/download/NHSE-for-Mac.dmg)** · [ZIP download](https://github.com/marcsphd/NHSE-for-Mac/releases/latest/download/NHSE-for-Mac.zip) · [All releases](https://github.com/marcsphd/NHSE-for-Mac/releases)
+**[Download for Mac (.dmg)](https://github.com/marcsphd/Animal-Crossing-Save-Editor-for-Mac/releases/latest/download/NHSE-for-Mac.dmg)** · [ZIP download](https://github.com/marcsphd/Animal-Crossing-Save-Editor-for-Mac/releases/latest/download/NHSE-for-Mac.zip) · [All releases](https://github.com/marcsphd/Animal-Crossing-Save-Editor-for-Mac/releases)
 
 1. Download and open the DMG.
 2. Drag **ACNH Save Editor.app** onto the **Applications** shortcut.
@@ -22,9 +26,8 @@ Requires macOS 14 or later. One download supports both Apple silicon and Intel. 
 - Centered, continuous pinch zoom from 100% to 500%, with five slider presets and sharp artwork at high zoom.
 - Arrow-key tile selection without scrolling the map; item-only copy, paste, delete, and undo with complete object footprints.
 - Default-on **Snap to tiles** beside zoom, with an information popover and on-screen keyboard guidance.
-- The owner-contributed Yolo island bundled as the default preview, including its terrain, buildings, and objects.
 
-## Features
+## What can you change?
 
 - Player settings: primary resident name and birthday.
 - Island settings: island name, hemisphere, airport, weather, fruit, and flowers.
@@ -33,11 +36,22 @@ Requires macOS 14 or later. One download supports both Apple silicon and Intel. 
 - Animal-villager identities, personality, catchphrases, moving-out state, and basic friendship.
 - Money editing, saved pocket loadouts, undo/redo, change review, full-save exports, verified backups, and restore.
 
+## Before you start
+
+You need an exported Animal Crossing: New Horizons save folder. This app edits that folder; you will need a separate way to export your save and import it back into your game.
+
+Editing currently supports the primary player. Some features, including house interiors, DIY recipes, and custom designs, are not available yet. See the detailed comparison below for the full list.
+
+Keep a separate copy of your original save and close the game before importing changes. Importing an edited save back into the game has not yet been tested for this release.
+
+<details>
+<summary>Detailed feature comparison with NHSE</summary>
+
 ### Feature comparison
 
-This compares NHSE with **NHSE for Mac 2.0**. “Limited” means the Mac app implements only the scope described below.
+This compares NHSE with **Animal Crossing Save Editor for Mac 2.0**. “Limited” means the Mac app implements only the scope described below.
 
-| Feature | NHSE | NHSE for Mac |
+| Feature | NHSE | Animal Crossing Save Editor for Mac |
 | --- | --- | --- |
 | Native desktop interface | Windows / .NET Windows Forms | macOS 14+ / SwiftUI; Apple silicon and Intel |
 | Choose which human resident to edit | Select any resident present in the save | **Limited:** primary resident only |
@@ -69,6 +83,9 @@ This compares NHSE with **NHSE for Mac 2.0**. “Limited” means the Mac app im
 Checked on **29 October 2026** against NHSE revision [`cb07454`](https://github.com/kwsch/NHSE/tree/cb0745415945776f73375bf0a434a8babf059307), including its [main editor](https://github.com/kwsch/NHSE/blob/cb0745415945776f73375bf0a434a8babf059307/NHSE.WinForms/Editor.cs), [map editor](https://github.com/kwsch/NHSE/blob/cb0745415945776f73375bf0a434a8babf059307/NHSE.WinForms/Subforms/Map/FieldItemEditor.cs), [inventory editor](https://github.com/kwsch/NHSE/blob/cb0745415945776f73375bf0a434a8babf059307/NHSE.WinForms/Subforms/PlayerItemEditor.cs), and [villager editor](https://github.com/kwsch/NHSE/blob/cb0745415945776f73375bf0a434a8babf059307/NHSE.WinForms/Controls/VillagerEditor.cs). Mac details are documented in the [Mac guide](ACNH-Save-Editor/macOS/README.md).
 
 This is a partial NHSE port. Read the [Mac guide](ACNH-Save-Editor/macOS/README.md) for supported settings and limitations. Edits target the primary resident; unlocked inventory capacity and locked records are preserved.
+
+
+</details>
 
 ## Build and test
 

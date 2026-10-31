@@ -1,4 +1,4 @@
-# ACNH Save Editor for Mac
+# Animal Crossing Save Editor for Mac — Mac guide
 
 Version **2.0** — map artwork, building guides, continuous centered zoom, keyboard item editing, and the complete Yolo preview island.
 
@@ -6,7 +6,7 @@ An independent native SwiftUI macOS adaptation primarily based on [NHSE](https:/
 
 ## Open the app
 
-**[Download for Mac (.dmg)](https://github.com/marcsphd/NHSE-for-Mac/releases/latest/download/NHSE-for-Mac.dmg)** · [ZIP download](https://github.com/marcsphd/NHSE-for-Mac/releases/latest/download/NHSE-for-Mac.zip) · [All releases](https://github.com/marcsphd/NHSE-for-Mac/releases)
+**[Download for Mac (.dmg)](https://github.com/marcsphd/Animal-Crossing-Save-Editor-for-Mac/releases/latest/download/NHSE-for-Mac.dmg)** · [ZIP download](https://github.com/marcsphd/Animal-Crossing-Save-Editor-for-Mac/releases/latest/download/NHSE-for-Mac.zip) · [All releases](https://github.com/marcsphd/Animal-Crossing-Save-Editor-for-Mac/releases)
 
 1. Download and open the DMG.
 2. Drag **ACNH Save Editor.app** onto the **Applications** shortcut.
