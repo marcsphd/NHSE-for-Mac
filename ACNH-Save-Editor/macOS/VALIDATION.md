@@ -188,3 +188,62 @@ Independently decrypted the UI export using Python/OpenSSL and verified 12 terra
 Automated tests and the earlier interface checks used generated fixtures. Version 1.1.3 additionally opened and exported an isolated copy of a supplied real island as described above; the user's original folder was not modified. A real Switch import/game round trip remains untested. Intel code was compiled but not run on Intel hardware. Minimum macOS compatibility was checked from binary metadata; runtime testing was on the local Mac.
 
 The map is schematic and does not automatically solve collisions, terrain adjacency, path edges or bridge/incline connections. Human player appearance editing is not included. Selecting another animal villager preserves the current house and furniture.
+
+## Map zoom controls — 30 October 2026
+
+- Default scale is 100% (five points per terrain tile). The labeled slider has exactly five stops: 100%, 200%, 300%, 400%, and 500%.
+- Native SwiftUI magnification on the map scales continuously within the range and settles at the nearest stop after release or cancellation. Pinch state blocks terrain painting and resets brush interpolation.
+- Native release build/signature verification passed. All 14 selected zoom, map-coordinate, and building-footprint tests passed. The native interface was checked at the 100% default, a single step to 200%, the 500% limit, and back to 100%. Physical trackpad pinch input was not available to the UI automation tool and remains a manual check.
+
+### Continuous pinch refinement — 30 October 2026
+
+Supersedes the release/cancellation snapping described above. Pinch zoom now retains its fractional scale after release or cancellation, within 100%–500%; the slider alone retains its five presets. The gesture threshold was reduced from 1% to 0.1% for finer motion. All nine selected zoom/coordinate tests passed, including successive fractional pinches and hit testing between presets. Physical trackpad input remains a manual check.
+
+## Bundled Yolo example island — 30 October 2026
+
+The owner-contributed full ACNH 3.0.3 save snapshot replaces the synthetic preview and is intentionally tracked in Git and included in every build. Explore a Preview loads the bundled copy through SaveSession validation, with no live session retained and saving/exporting disabled. The example manifest records hashes for all 11 save files. The owner's original game save is unchanged.
+
+## Map keyboard editing — 31 October 2026
+
+- A focused map accepts arrow keys in Terrain and Items, keeping the selected tile/cell within bounds. Automatic recentering was subsequently removed; see the viewport fix below. Shortcut and continuous-pinch guidance is visible directly below the map heading.
+- Items support native ⌘C/⌘V, Copy/Paste/Delete buttons, and the Delete key. Copy resolves extension cells to their root and preserves the exact root/extension records. Paste translates the complete footprint onto empty cells atomically; Delete removes the entire owned footprint. Draft undo/redo applies to each paste or deletion.
+- The custom clipboard type is declared in Info.plist and registered as data. Clipboard payloads are validated, size-limited, and cannot contain terrain/building edits. An asynchronous paste is discarded if the user leaves the map or opens a different island while its data loads.
+- Native interface checks passed on the bundled Yolo preview: terrain and item arrow navigation; button copy to keyboard paste; keyboard copy, Delete, paste, and undo; normal arrow/Delete/copy/paste in the search field; disabled Copy/Paste/Delete in Buildings. No bundled or original save was changed by these checks.
+- All 16 selected tests passed. Coverage includes exact flags/variations/quantity preservation, planted flowers, cross-layer paste, linked-cell deletion, collision/edge rejection without partial edits, malformed clipboard records, and a real-island encrypted export round trip that preserves terrain, buildings, resident data, and the copied source object.
+- Building cloning is intentionally unavailable: NHSE's map-editor documentation describes duplicate-facility side effects as unknown and recommends placement-only changes for existing buildings.
+
+### Stable viewport during keyboard selection — 31 October 2026
+
+Removed the ScrollViewReader recentering callback and its invisible selection target. Arrow keys now update only selection coordinates. Native release build/signature verification passed. At 500% zoom, Right/Down changed the selected terrain tile and item cell while both horizontal and vertical scroll-bar values remained unchanged (0.0676541233 and 0.1218983852 in the checked window).
+
+### Centered zoom — 31 October 2026
+
+Maps smaller than the viewport are centered in the available space. A native layout observer records the map point under the viewport center before zoom, waits for the new canvas dimensions, and restores that point at the same screen position. Scroll bounds clamp naturally at map edges; keyboard selection does not invoke this adjustment.
+
+Native release build/signature verification passed. Interface checks covered 100% → 200% → 500% (both scroll positions remained centered at 0.5), a panned 200% → 300% transition (vertical positions 0.6066235864 → 0.5786338364 preserve the same map coordinate), and arrow navigation at 500% with unchanged scroll positions. Continuous pinch uses the same scale update path.
+
+### Item grid snapping — 31 October 2026
+
+The Items inspector has a “Snap to the grid” checkbox enabled by default. Empty-cell clicks align to a full tile, occupied-cell clicks resolve to the actual object root, and keyboard/stepper movement uses two half-tile coordinates per press. Existing odd-coordinate roots retain their phase; switching snapping off restores one-half-tile steps and a smaller selection reticle. These controls only change selection, never the saved positions of existing objects.
+
+All 14 selected coordinate, clipboard and snapping tests passed, including copying a standard 2 × 2 object and successfully pasting after one upward move, fine-mode overlap rejection, map-edge alignment, and odd-root preservation. Native UI checks confirmed the default-on state, one Up changing Y 96 → 94, snapping off changing 94 → 93, and snapping back on realigning to 92 before a stepper decrease to 90. Native build/signature verification passed.
+
+### Tile snapping information popover — 31 October 2026
+
+Renamed the Items checkbox to “Snap to tiles” and replaced the always-visible explanation with an adjacent native `info.circle` button. Clicking it opens a popover containing the approved helper text: “Select object roots and move one full tile per arrow press. Turn off for finer positioning.” Native interface checks confirmed the default-on checkbox, accessible information button, and helper popover appearing on click. Native release build/signature verification passed.
+
+
+### Native magnification and map toolbar — 31 October 2026
+
+Supersedes the asynchronous layout observer described under Centered zoom. A dedicated `NSScrollView` now keeps its document at 720 × 640 logical points and applies magnification and centering together. The native magnification event handler accepts fractional increments in both directions, clamps to 100%–500%, and leaves the exact scale on release or cancellation. No delayed scroll correction, layout polling, or second gesture recognizer competes with it. The canvas renders at the visible resolution inside the fixed document to keep artwork sharp at 500%.
+
+The Items-only “Snap to tiles” checkbox and information button now sit beside the zoom percentage. Visibility controls wrap onto a second row when space is limited.
+
+All 21 selected tests passed: three new AppKit regression tests cover centering a document smaller than its viewport, hundreds of fractional zoom changes and reversals across the viewport-size thresholds, fixed document dimensions, a panned center, and zoom limits; 18 core tests cover zoom, coordinates, snapping, and clipboard integrity. Native interface checks confirmed 100% centering, both scroll positions staying at 0.5 through 500%, unchanged scroll positions during arrow navigation, panning followed by zoom, sharp artwork at 500%, and the relocated helper popover. Physical trackpad pinch input is unavailable to UI automation; its tactile smoothness remains a manual check.
+
+
+### Version 2.0 release — 31 October 2026
+
+All 77 automated tests passed: 74 core tests and three native map-viewport tests, with zero failures. The full run includes save validation, encryption, backups and restore, player/island edits, inventory/storage, building plot dimensions, map coordinates, object clipboard integrity, tile snapping, and repeated fractional zoom reversals.
+
+The release app identifies as version 2.0, build 14. Its universal executable contains arm64 and x86_64, both with a macOS 14.0 minimum deployment target. Ad-hoc signature verification passed for the built app and the app inside the read-only mounted DMG. The DMG checksum and ZIP integrity checks passed; both contain the same executable and all 11 contributed example files match their SHA-256 manifest. The app includes 14 building artwork assets. SHA256SUMS.txt accompanies the DMG and ZIP downloads. Developer ID notarization, physical trackpad feel, Intel execution, and importing edits back into the game remain unverified.

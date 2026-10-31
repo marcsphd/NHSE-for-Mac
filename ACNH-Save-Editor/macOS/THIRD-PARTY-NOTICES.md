@@ -16,3 +16,7 @@ The Mac port rewrites the UI and file handling, removes Switch-specific dependen
 ## Mac app icon
 
 The Inventory Tiles app icon (selected concept 6) and saved Leaf & Pencil alternate (concept 1) were generated specifically for this project using the built-in image generator. They replace the earlier app icon; the upstream Switch icon remains in the original Switch sources. Original concepts and preparation prompts are preserved with the project. See `ICON-PROVENANCE.json`.
+
+## Original building illustrations
+
+The 14 `building-icon-*.png` files are original AI-generated fan artwork produced with the built-in imagegen tool for this Mac editor. They are inspired by Animal Crossing and are not official Nintendo or NHSE assets. Prompts and spacing sources are recorded in `Design/Map/`. Existing Nintendo/NHSE inventory and character artwork retains the attribution above.

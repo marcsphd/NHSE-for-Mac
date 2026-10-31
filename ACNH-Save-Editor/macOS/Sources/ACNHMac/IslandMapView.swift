@@ -1,4 +1,6 @@
 import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
 import ACNHCore
 
 private enum MapLayer: String, CaseIterable { case terrain = "Terrain", items = "Items", buildings = "Buildings" }
@@ -13,10 +15,16 @@ struct IslandMapView: View {
     @State private var itemX = 112
     @State private var itemY = 80
     @State private var itemLayer = 0
+    @State private var snapToGrid = true
+    @State private var showSnapHelp = false
     @State private var selectedBuilding = 0
-    @State private var zoom: Double = 3
+    @State private var zoomScale: Double = 1
+    @State private var isPinching = false
+    private var zoom: Double { MapZoom.pointsPerTile * zoomScale }
     @State private var grid = false
     @State private var showBuildings = true
+    @State private var showItems = true
+    @State private var showBuildingGuides = true
     @State private var ground: UInt16 = 0
     @State private var path: UInt16 = 0x5C
     @State private var angle: UInt16 = 0
@@ -25,6 +33,9 @@ struct IslandMapView: View {
     @State private var strokeRecorded = false
     @State private var previousPoint: (Int, Int)?
     @State private var itemSearch = ""
+    @FocusState private var mapFocused: Bool
+    private static let mapItemType = UTType(exportedAs: "com.nhse-for-mac.outdoor-object", conformingTo: .data)
+    private static let mapPasteboardType = NSPasteboard.PasteboardType(mapItemType.identifier)
     private static let acres = (try? Data(contentsOf: Bundle.module.url(forResource: "outside", withExtension: "bin")!)) ?? Data()
     private var edits: IslandEdits { model.draft?.island ?? .init() }
     private var selectedIndex: Int { x * 96 + y }
@@ -35,27 +46,43 @@ struct IslandMapView: View {
             VStack(alignment: .leading, spacing: 14) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("An island of your own.").font(.system(size: 27, weight: .semibold, design: .rounded))
-                    Text(model.demo ? "Preview · Example island · Saving disabled" : "Select a tile to inspect it, or drag a brush to shape terrain and paths.")
+                    Text(model.demo ? "Preview · \(model.draft?.islandSettings.name ?? "Island") · Saving disabled" : "Select a tile to inspect it, or drag a brush to shape terrain and paths.")
                         .font(.callout).foregroundStyle(.secondary)
+                    Text(layer == .buildings
+                         ? "Click a building to select it · Pinch to zoom"
+                         : "Click the map, then use ↑ ↓ ← → to select a tile · Pinch to zoom")
+                        .font(.callout).foregroundStyle(.secondary)
+                    Text("Items tab: ⌘C copy · ⌘V paste into empty space · Delete remove object · ⌘Z undo")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
                 HStack {
                     Picker("Layer", selection: $layer) { ForEach(MapLayer.allCases, id: \.self) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented).frame(maxWidth: 300)
                     Spacer()
                     Toggle("Grid", isOn: $grid).toggleStyle(.checkbox)
                 }
-                HStack {
-                    Image(systemName: "minus.magnifyingglass")
-                    Slider(value: $zoom, in: 3...14, step: 1).frame(maxWidth: 140).accessibilityLabel("Map zoom")
-                    Image(systemName: "plus.magnifyingglass")
-                    Text("\(Int(zoom * 20))%").font(.caption.monospacedDigit())
-                    Spacer()
-                    Toggle("Buildings", isOn: $showBuildings).toggleStyle(.checkbox)
-                }.font(.caption)
-                ScrollView([.horizontal, .vertical]) {
-                    if let world = model.world {
-                        mapCanvas(world).frame(width: 144 * zoom, height: 128 * zoom)
+                ViewThatFits(in: .horizontal) {
+                    HStack {
+                        zoomControls
+                        Spacer(minLength: 12)
+                        visibilityControls
                     }
-                }.background(Color(red: 0.48, green: 0.76, blue: 0.77), in: RoundedRectangle(cornerRadius: 12))
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack { zoomControls; Spacer(minLength: 0) }
+                        HStack { Spacer(); visibilityControls }
+                    }
+                }.font(.caption)
+                if let world = model.world {
+                    MapZoomScrollView(scale: $zoomScale, isPinching: $isPinching,
+                                      mapSize: NSSize(width: 144 * MapZoom.pointsPerTile, height: 128 * MapZoom.pointsPerTile)) {
+                        // Render at the visible resolution while the native document
+                        // stays fixed, keeping artwork crisp without relaying out scrolling.
+                        mapCanvas(world).frame(width: 144 * zoom, height: 128 * zoom)
+                            .scaleEffect(1 / zoomScale, anchor: .topLeading)
+                            .frame(width: 144 * MapZoom.pointsPerTile, height: 128 * MapZoom.pointsPerTile, alignment: .topLeading)
+                    }
+                    .background(Color(red: 0.48, green: 0.76, blue: 0.77))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
                 HStack(spacing: 12) {
                     legend("Land", color: .init(red: 0.30, green: 0.55, blue: 0.31))
                     legend("Water", color: .init(red: 0.50, green: 0.84, blue: 0.77))
@@ -74,7 +101,133 @@ struct IslandMapView: View {
                 }.padding(20)
             }.frame(minWidth: 290, idealWidth: 315, maxWidth: 370)
         }
-        .onChange(of: layer) { _, _ in tool = .inspect; previousPoint = nil; strokeRecorded = false }
+        .onChange(of: layer) { _, newLayer in
+            tool = .inspect; previousPoint = nil; strokeRecorded = false
+            showSnapHelp = false
+            if newLayer == .items && snapToGrid { selectItemCell(MapCell(x: itemX, y: itemY)) }
+        }
+        .onChange(of: snapToGrid) { _, enabled in
+            if enabled { selectItemCell(MapCell(x: itemX, y: itemY)) }
+        }
+        .onChange(of: itemLayer) { _, _ in
+            if snapToGrid { selectItemCell(MapCell(x: itemX, y: itemY)) }
+        }
+        .onChange(of: isPinching) { _, _ in
+            previousPoint = nil
+            strokeRecorded = false
+        }
+    }
+    private var zoomControls: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "minus.magnifyingglass")
+            VStack(spacing: 2) {
+                Slider(value: $zoomScale, in: 1...5, step: 1)
+                    .accessibilityLabel("Map zoom")
+                    .accessibilityValue("\(Int((zoomScale * 100).rounded())) percent")
+                HStack(spacing: 0) {
+                    ForEach(Array(MapZoom.stops), id: \.self) { stop in
+                        if stop > 1 { Spacer(minLength: 0) }
+                        Text("\(stop * 100)%").font(.system(size: 9).monospacedDigit())
+                    }
+                }.foregroundStyle(.secondary).accessibilityHidden(true)
+            }.frame(width: 180).help("Pinch freely between 100% and 500%. Use the slider for 100%, 200%, 300%, 400%, or 500% presets.")
+            Image(systemName: "plus.magnifyingglass")
+            Text("\(Int((zoomScale * 100).rounded()))%").font(.caption.monospacedDigit()).frame(width: 38, alignment: .leading)
+            if layer == .items { snapControls }
+        }.fixedSize(horizontal: true, vertical: false)
+    }
+    private var visibilityControls: some View {
+        HStack {
+            Toggle("Objects", isOn: Binding(get: { showItems || layer == .items }, set: { showItems = $0 }))
+                .toggleStyle(.checkbox).disabled(layer == .items)
+            Toggle("Buildings", isOn: $showBuildings).toggleStyle(.checkbox)
+        }.fixedSize()
+    }
+    private var snapControls: some View {
+        HStack(spacing: 6) {
+            Toggle("Snap to tiles", isOn: $snapToGrid).toggleStyle(.checkbox).fixedSize()
+            Button { showSnapHelp.toggle() } label: {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 14))
+                    .frame(width: 20, height: 20)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .accessibilityLabel("About Snap to tiles")
+            .help("About Snap to tiles")
+            .popover(isPresented: $showSnapHelp) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Snap to tiles").font(.headline)
+                    Text("Select object roots and move one full tile per arrow press. Turn off for finer positioning.")
+                        .font(.callout).fixedSize(horizontal: false, vertical: true)
+                }.frame(width: 250, alignment: .leading).padding(16)
+            }
+        }
+    }
+    private func moveSelection(_ direction: MoveCommandDirection) {
+        guard mapFocused, !isPinching, !model.busy, layer != .buildings else { return }
+        let dx: Int, dy: Int
+        switch direction {
+        case .left: (dx, dy) = (-1, 0)
+        case .right: (dx, dy) = (1, 0)
+        case .up: (dx, dy) = (0, -1)
+        case .down: (dx, dy) = (0, 1)
+        @unknown default: return
+        }
+        if layer == .items {
+            moveItemSelection(dx: dx, dy: dy)
+        } else {
+            x = min(111, max(0, x + dx)); y = min(95, max(0, y + dy))
+        }
+        previousPoint = nil; strokeRecorded = false
+    }
+    private func moveItemSelection(dx: Int, dy: Int) {
+        let next = MapCoordinates.movingItemCell(MapCell(x: itemX, y: itemY), dx: dx, dy: dy, snapped: snapToGrid)
+        itemX = next.x; itemY = next.y
+    }
+    private func selectItemCell(_ cell: MapCell) {
+        let next = snapToGrid ? MapCoordinates.snappedItemCell(cell) : cell
+        if snapToGrid, let world = model.world {
+            // Prefer the object actually clicked; an aligned cell may also be an extension.
+            for candidate in [cell, next] {
+                guard let index = try? IslandLayout.fieldIndex(x: candidate.x, y: candidate.y, layer: itemLayer),
+                      let root = try? world.rootIndex(for: index, edits: edits),
+                      !world.fieldItem(root, edits: edits).isEmpty else { continue }
+                let local = root % IslandLayout.fieldCount
+                itemX = local / 192; itemY = local % 192
+                return
+            }
+        }
+        itemX = next.x; itemY = next.y
+    }
+    private func copyProviders() -> [NSItemProvider] {
+        guard layer == .items, let data = model.copyMapItem(at: selectedItemIndex) else { return [] }
+        return [NSItemProvider(item: data as NSData, typeIdentifier: Self.mapItemType.identifier)]
+    }
+    private func pasteProviders(_ providers: [NSItemProvider]) {
+        guard layer == .items, let provider = providers.first, let origin = model.world?.main else { return }
+        let target = selectedItemIndex
+        provider.loadDataRepresentation(forTypeIdentifier: Self.mapItemType.identifier) { data, error in
+            Task { @MainActor in
+                guard layer == .items, model.page == .map, model.world?.main == origin else { return }
+                if let data { model.pasteMapItem(data, at: target) }
+                else { model.error = error?.localizedDescription ?? "The clipboard does not contain an outdoor object." }
+            }
+        }
+    }
+    private func copyToPasteboard() {
+        guard layer == .items, let data = model.copyMapItem(at: selectedItemIndex) else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setData(data, forType: Self.mapPasteboardType)
+    }
+    private func pasteFromPasteboard() {
+        guard layer == .items else { return }
+        guard let data = NSPasteboard.general.data(forType: Self.mapPasteboardType) else {
+            model.error = "Copy an outdoor object from the Items tab first."
+            return
+        }
+        model.pasteMapItem(data, at: selectedItemIndex)
     }
     private func legend(_ text: String, color: Color) -> some View {
         HStack(spacing: 4) { Circle().fill(color).frame(width: 8, height: 8); Text(text).font(.caption2).foregroundStyle(.secondary) }
@@ -161,28 +314,41 @@ struct IslandMapView: View {
             Text("Outdoor Items").font(.title3.weight(.semibold))
             Picker("Item layer", selection: $itemLayer) { Text("Ground").tag(0); Text("Upper").tag(1) }.pickerStyle(.segmented)
             HStack {
-                Stepper("X: \(itemX)", value: $itemX, in: 0...287)
-                Stepper("Y: \(itemY)", value: $itemY, in: 0...191)
+                Stepper("X: \(itemX)", onIncrement: { moveItemSelection(dx: 1, dy: 0) }, onDecrement: { moveItemSelection(dx: -1, dy: 0) }).accessibilityValue("\(itemX)")
+                Stepper("Y: \(itemY)", onIncrement: { moveItemSelection(dx: 0, dy: 1) }, onDecrement: { moveItemSelection(dx: 0, dy: -1) }).accessibilityValue("\(itemY)")
             }.font(.callout)
             if let world = model.world {
                 let root = (try? world.rootIndex(for: selectedItemIndex, edits: edits)) ?? selectedItemIndex
                 let item = world.fieldItem(root, edits: edits)
-                Text(item.isEmpty ? "Empty map cell" : model.catalog.name(item)).font(.headline)
+                HStack(spacing: 10) {
+                    if !item.isEmpty { ItemIcon(id: item.id, size: 40) }
+                    Text(item.isEmpty ? "Empty map cell" : model.catalog.name(item)).font(.headline)
+                }
                 if !item.isEmpty {
                     Text("Root at (\((root % IslandLayout.fieldCount) / 192), \(root % 192))").font(.caption.monospaced()).foregroundStyle(.secondary)
                 }
-                Button("Remove Object & Footprint") { model.clearMapItem(at: selectedItemIndex) }.disabled(item.isEmpty)
+                HStack {
+                    Button("Copy") { copyToPasteboard() }.disabled(item.isEmpty || model.busy).help("Copy object and footprint (⌘C)")
+                    Button("Paste") { pasteFromPasteboard() }.disabled(model.busy).help("Paste into empty space (⌘V)")
+                    Button("Delete") { model.clearMapItem(at: selectedItemIndex) }.disabled(item.isEmpty || model.busy).help("Delete object and footprint (Delete)")
+                }
             }
             Divider()
             Text("Drop a catalog item").font(.headline)
             TextField("Search items", text: $itemSearch).textFieldStyle(.roundedBorder).accessibilityLabel("Search outdoor items")
             List(selection: Binding(get: { model.selectedItem }, set: { if let id = $0 { model.selectItem(id) } })) {
                 ForEach(model.catalog.items.filter { $0.id < 60_000 && (itemSearch.isEmpty ? Catalog.favoriteNames.contains($0.name) : $0.name.localizedCaseInsensitiveContains(itemSearch)) }) { item in
-                    Text(item.name).font(.callout).tag(item.id)
+                    HStack(spacing: 8) {
+                        ItemIcon(id: item.id, size: 24)
+                        Text(item.name).font(.callout)
+                    }.tag(item.id)
                 }
             }.listStyle(.bordered).frame(height: 200)
             if let item = model.currentItem {
-                Text(item.name).font(.callout.weight(.semibold))
+                HStack(spacing: 10) {
+                    ItemIcon(id: item.id, size: 36)
+                    Text(item.name).font(.callout.weight(.semibold))
+                }
                 Stepper("Quantity: \(model.quantity)", value: $model.quantity, in: 1...max(1, item.maxStack))
                 Button("Drop at Selected Cell") { model.dropMapItem(at: selectedItemIndex) }.buttonStyle(.borderedProminent)
             }
@@ -202,7 +368,19 @@ struct IslandMapView: View {
                     }
                     let index = buildings.contains(where: { $0.id == selectedBuilding }) ? selectedBuilding : buildings[0].id
                     let building = world.building(index, edits: edits)
-                    Text(building.name).font(.headline)
+                    HStack(spacing: 12) {
+                        BuildingIcon(kind: building.kind)
+                        Text(building.name).font(.headline)
+                    }
+                    if let footprint = BuildingFootprint.forBuilding(building) {
+                        Text("\(Int(footprint.width)) × \(Int(footprint.depth)) tile plot guide").font(.callout.weight(.medium))
+                        Text("Dashed outline: one-tile spacing guide.").font(.caption).foregroundStyle(.secondary)
+                        Text(footprint.note).font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        Text("Plot dimensions not verified for this structure. Icon size is illustrative.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    Toggle("Show plot guides", isOn: $showBuildingGuides).toggleStyle(.checkbox)
                     Text("Coordinates in half tiles").font(.caption).foregroundStyle(.secondary)
                     Stepper("X: \(building.position.x)", value: buildingBinding(index, \.x), in: 0...UInt16(IslandLayout.buildingWidth - 1))
                     Stepper("Y: \(building.position.y)", value: buildingBinding(index, \.y), in: 0...UInt16(IslandLayout.buildingHeight - 1))
@@ -231,15 +409,6 @@ struct IslandMapView: View {
                 let color = tileColor(tile, x: tx, y: ty, world: world)
                 context.fill(Path(CGRect(x: Double(tx + 16) * cell, y: Double(ty + 16) * cell, width: cell + 0.1, height: cell + 0.1)), with: .color(color))
             } }
-            if layer == .items {
-                for index in 0..<IslandLayout.fieldCount {
-                    let item = world.fieldItem(itemLayer * IslandLayout.fieldCount + index, edits: edits)
-                    guard !item.isEmpty, item.id != 0xFFFD else { continue }
-                    let px = Double(index / 192) / 2, py = Double(index % 192) / 2 + 16
-                    let rect = CGRect(x: px * cell, y: py * cell, width: max(2, cell), height: max(2, cell))
-                    context.fill(Path(ellipseIn: rect.insetBy(dx: 0.5, dy: 0.5)), with: .color(.yellow))
-                }
-            }
             if grid {
                 var lines = Path()
                 for i in 0...144 { lines.move(to: CGPoint(x: Double(i) * cell, y: 0)); lines.addLine(to: CGPoint(x: Double(i) * cell, y: 128 * cell)) }
@@ -250,36 +419,97 @@ struct IslandMapView: View {
             for i in 0...9 { acres.move(to: CGPoint(x: Double(i * 16) * cell, y: 0)); acres.addLine(to: CGPoint(x: Double(i * 16) * cell, y: 128 * cell)) }
             for i in 0...8 { acres.move(to: CGPoint(x: 0, y: Double(i * 16) * cell)); acres.addLine(to: CGPoint(x: 144 * cell, y: Double(i * 16) * cell)) }
             context.stroke(acres, with: .color(.white.opacity(0.18)), lineWidth: 1)
+            if showItems || layer == .items {
+                // Resolve each artwork once per frame, even on densely planted islands.
+                var artwork: [UInt16: GraphicsContext.ResolvedImage] = [:]
+                let visibleLayers = layer == .items ? [itemLayer] : [0, 1]
+                for visibleLayer in visibleLayers {
+                    for index in 0..<IslandLayout.fieldCount {
+                        let item = world.fieldItem(visibleLayer * IslandLayout.fieldCount + index, edits: edits)
+                        // Extension cells belong to their root object and have no separate icon.
+                        guard !item.isEmpty, item.id != 0xFFFD else { continue }
+                        if artwork[item.id] == nil, let image = ItemIconStore.shared.image(for: item.id) {
+                            artwork[item.id] = context.resolve(Image(nsImage: image))
+                        }
+                        guard let image = artwork[item.id] else { continue }
+                        let px = Double(index / 192) / 2
+                        let py = Double(index % 192) / 2 + 16
+                        // Center on the same one-tile marker used by item selection.
+                        let side = cell * 1.4
+                        let aspect = image.size.width / max(1, image.size.height)
+                        let width = side * min(1, aspect)
+                        let height = side / max(1, aspect)
+                        let rect = CGRect(x: (px + 0.5) * cell - width / 2,
+                                          y: (py + 0.5) * cell - height / 2,
+                                          width: width, height: height)
+                        context.draw(image, in: rect)
+                    }
+                }
+            }
             if showBuildings || layer == .buildings {
                 for index in 0..<46 {
                     let building = world.building(index, edits: edits)
                     guard building.kind != 0 else { continue }
                     let point = MapCoordinates.buildingPoint(building.position, zoom: cell)
-                    let markerSize = max(8, cell * 1.8)
-                    let rect = CGRect(x: point.x - markerSize / 2, y: point.y - markerSize / 2, width: markerSize, height: markerSize)
-                    context.fill(Path(roundedRect: rect, cornerRadius: 2), with: .color(index == selectedBuilding && layer == .buildings ? .orange : .white))
-                    context.stroke(Path(roundedRect: rect, cornerRadius: 2), with: .color(.brown), lineWidth: 1)
-                    if index == selectedBuilding && layer == .buildings {
-                        context.stroke(Path(roundedRect: rect.insetBy(dx: -2, dy: -2), cornerRadius: 3), with: .color(Color.island), lineWidth: 2)
+                    let rect = MapCoordinates.buildingBounds(building, zoom: cell)
+                    let selected = index == selectedBuilding && layer == .buildings
+                    let hasGuide = BuildingFootprint.forBuilding(building) != nil
+                    if showBuildingGuides && hasGuide {
+                        context.fill(Path(rect), with: .color(Color.brown.opacity(selected ? 0.22 : 0.10)))
+                        context.stroke(Path(rect), with: .color(selected ? Color.island : .white.opacity(0.65)), lineWidth: selected ? 2 : 0.7)
+                        if selected {
+                            context.stroke(Path(rect.insetBy(dx: -cell, dy: -cell)),
+                                with: .color(Color.island.opacity(0.8)), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                        }
+                    }
+                    if let artwork = BuildingIconStore.shared.image(for: building.kind) {
+                        let image = context.resolve(Image(nsImage: artwork))
+                        let side = max(10, min(rect.width, rect.height))
+                        var iconContext = context
+                        iconContext.translateBy(x: point.x, y: point.y)
+                        if building.kind == 26 || building.kind == 27 {
+                            // Cardinal orientation plus the diagonal model's intrinsic turn.
+                            let diagonal = BuildingFootprint.isDiagonalBridge(building) ? 45.0 : 0
+                            iconContext.rotate(by: .degrees(Double(building.position.angle) * 90 + diagonal))
+                        }
+                        iconContext.draw(image, in: CGRect(x: -side / 2, y: -side / 2, width: side, height: side))
+                    } else {
+                        context.draw(Image(systemName: "building.2.fill"), at: CGPoint(x: point.x, y: point.y))
+                    }
+                    if selected {
+                        context.stroke(Path(rect.insetBy(dx: -2, dy: -2)), with: .color(Color.island), lineWidth: 2)
+                        // Always expose the original saved anchor independently of artwork.
+                        context.fill(Path(ellipseIn: CGRect(x: point.x - 1.5, y: point.y - 1.5, width: 3, height: 3)), with: .color(.white))
+                        context.draw(Text(building.name).font(.system(size: 11, weight: .semibold)).foregroundColor(.primary),
+                                     at: CGPoint(x: point.x, y: rect.maxY + 10))
                     }
                 }
             }
             if layer != .buildings {
                 let selection: CGRect
-                if layer == .items { selection = CGRect(x: Double(itemX) / 2 * cell, y: (Double(itemY) / 2 + 16) * cell, width: cell, height: cell) }
+                if layer == .items { selection = CGRect(x: Double(itemX) / 2 * cell, y: (Double(itemY) / 2 + 16) * cell, width: snapToGrid ? cell : cell / 2, height: snapToGrid ? cell : cell / 2) }
                 else { selection = CGRect(x: Double(x + 16) * cell, y: Double(y + 16) * cell, width: cell, height: cell) }
                 context.stroke(Path(selection.insetBy(dx: -1, dy: -1)), with: .color(.white), lineWidth: 3)
                 context.stroke(Path(selection.insetBy(dx: -2, dy: -2)), with: .color(Color.island), lineWidth: 1)
             }
         }
         .contentShape(Rectangle())
+        .focusable()
+        .focused($mapFocused)
+        .focusEffectDisabled()
+        .onMoveCommand(perform: moveSelection)
+        .onCopyCommand(perform: layer == .items ? copyProviders : nil)
+        .onPasteCommand(of: layer == .items ? [Self.mapItemType] : [], perform: pasteProviders)
+        .onDeleteCommand(perform: layer == .items ? { model.clearMapItem(at: selectedItemIndex) } : nil)
         .gesture(DragGesture(minimumDistance: 0).onChanged { event in
+            guard !isPinching else { return }
+            mapFocused = true
             if layer == .items {
                 guard let cell = MapCoordinates.item(x: event.location.x, y: event.location.y, zoom: zoom) else { return }
-                itemX = cell.x; itemY = cell.y
+                selectItemCell(cell)
             } else if layer == .buildings {
                 let buildings = (0..<IslandLayout.buildingCount).map { world.building($0, edits: edits) }
-                if let nearest = MapCoordinates.nearestBuilding(x: event.location.x, y: event.location.y, zoom: zoom, buildings: buildings) { selectedBuilding = nearest }
+                if let nearest = MapCoordinates.buildingAt(x: event.location.x, y: event.location.y, zoom: zoom, buildings: buildings) { selectedBuilding = nearest }
             } else {
                 guard let cell = MapCoordinates.terrain(x: event.location.x, y: event.location.y, zoom: zoom) else {
                     previousPoint = nil
@@ -289,7 +519,7 @@ struct IslandMapView: View {
                 if tool != .inspect { paint(to: (cell.x, cell.y), world: world) }
             }
         }.onEnded { _ in previousPoint = nil; strokeRecorded = false })
-        .accessibilityLabel("Island map. Use the coordinate steppers and inspector to edit selected tiles.")
+        .accessibilityLabel("Island map. Click to focus. Arrow keys select tiles; pinch to zoom. In Items, Command C copies, Command V pastes, and Delete removes the selected object.")
     }
     private func paint(to point: (Int, Int), world: IslandSnapshot) {
         let start = previousPoint ?? point

@@ -6,10 +6,18 @@
 <key>CFBundleName</key><string>ACNH Save Editor</string>
 <key>CFBundleDisplayName</key><string>ACNH Save Editor</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>1.4.4</string>
-<key>CFBundleVersion</key><string>13</string>
+<key>CFBundleShortVersionString</key><string>2.0</string>
+<key>CFBundleVersion</key><string>14</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSHumanReadableCopyright</key><string>Native Mac port, 2026. Original ACNH Save Editor © 2026 cbreezy210 (MIT). Save-format metadata from NHSE contributors (GPL-3.0). No warranty. Not affiliated with Nintendo.</string>
+<key>UTExportedTypeDeclarations</key><array><dict>
+<key>UTTypeIdentifier</key><string>com.nhse-for-mac.outdoor-object</string>
+<key>UTTypeDescription</key><string>NHSE outdoor object</string>
+<key>UTTypeConformsTo</key><array><string>public.data</string></array>
+<key>UTTypeTagSpecification</key><dict>
+<key>com.apple.nspboard-type</key><array><string>com.nhse-for-mac.outdoor-object</string></array>
+</dict>
+</dict></array>
 </dict></plist>

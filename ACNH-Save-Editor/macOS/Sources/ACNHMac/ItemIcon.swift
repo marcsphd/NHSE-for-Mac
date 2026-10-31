@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// NHSE's bundled inventory icons, resolved by item ID rather than display name.
-@MainActor private final class ItemIconStore {
+@MainActor final class ItemIconStore {
     static let shared = ItemIconStore()
     private let names: [String: String]
     private let images = NSCache<NSString, NSImage>()

@@ -1,5 +1,7 @@
 # ACNH Save Editor for Mac
 
+Version **2.0** — map artwork, building guides, continuous centered zoom, keyboard item editing, and the complete Yolo preview island.
+
 An independent native SwiftUI macOS adaptation primarily based on [NHSE](https://github.com/kwsch/NHSE), using its save-format research and editor behavior. [cbreezy210/ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor) provided the initial foundation and selected save-cryptography routines. Requires macOS 14 or later. The universal build supports Apple silicon and Intel Macs. Works offline without third-party runtimes.
 
 ## Open the app
@@ -45,12 +47,12 @@ Save edits always carry risk. Keep a separate original backup and use offline. T
 - Player Settings: primary resident name and birthday (including the profile birthday). Names support up to 10 UTF-16 units; emoji may use multiple units. Birthdays use valid calendar dates, including February 29.
 - Island Settings: island name, northern/southern hemisphere, airport color, island/tour weather seeds and hemispheres, native/sister fruits and flowers. Changing native fruit also updates the island fruit flags and primary resident's profile fruit; existing planted objects are preserved.
 - Player/island renames propagate matching 24-byte ID-and-name identities through main.dat and supported files in Villager0–Villager7, following NHSE's identity replacement behavior. This includes personal, postbox, photo_studio_island, profile, and optional wherearen files. Only files present are required, but incomplete, corrupted, or mismatched pairs are rejected. Encryption headers, numeric IDs, unrelated names, and opaque sibling files are preserved.
-- A zoomable island map: select tiles, paint terrain and paths with 1×1 / 3×3 / 5×5 brushes, set terrain models / elevation / rotation, and inspect both outdoor item layers.
+- A zoomable island map, starting at 100%, with five zoom stops (100%, 200%, 300%, 400%, 500%) and trackpad pinch support. Pinching scales freely between 100% and 500% and retains the exact scale when released; only the slider uses the five preset stops. Select tiles, paint terrain and paths with 1×1 / 3×3 / 5×5 brushes, set terrain models / elevation / rotation, and inspect both outdoor item layers.
 - Drop catalog items with correct 2×2 footprints; remove existing objects with their linked extension cells.
 - Move existing buildings with terrain-aligned markers and half-tile coordinate steps, preserving their identity and interior.
 - Edit all 10 animal-villager slots: searchable selection from 417 identities with portraits, personality, catchphrase, moving-out state, and friendship for existing player memories. Empty slots are shown but cannot be populated.
 - Item search, 22 curated favorites, item-specific stack limits and zero-based save quantities.
-- NHSE inventory icons in the pocket grid, item library, and selected-item previews. Icons are bundled for offline use; furniture and other items use the same shared menu icons as NHSE. Optional external per-item image packs are not included.
+- NHSE inventory icons in the pocket grid, item library, outdoor map objects, and selected-item previews. The map shows both object layers outside item editing; the Items tab shows the selected layer. The Objects toggle hides the overlay while inspecting terrain or buildings. Icons are bundled for offline use; furniture and other items use the same shared menu icons as NHSE. Optional external per-item image packs are not included.
 - All unlocked pocket slots are read from both saved pocket blocks in game order, including 20-, 30-, and 40-slot inventories. Locked records and capacity counters are preserved; this screen does not unlock pocket upgrades.
 - A Storage tab for the primary resident's unlocked home storage (up to 9,000 slots in the supported save format), with offline item icons, fifty-slot pages, first/last navigation, search by stored name or hex ID, an occupied-only filter, and Find Empty Slot. Add/replace/remove items through the shared item library; update stack quantities while preserving the item's other saved bytes. Storage edits join draft undo/redo, review, export/save, backups, restore, and Revert Storage Changes. Locked records and storage capacity are preserved. Inventory-file import/export is not included.
 - Select multiple pocket or storage slots and place the same library item in all of them at once. Shift-click selects a range; ⌘-click adds or removes individual slots. A plain click selects one slot. A brief hint and count explain the shortcuts. Storage selection is limited to the visible page and filtered results. The placement panel shows occupied destinations and quantity per slot. Each batch placement or clear is one undo step.
@@ -87,3 +89,21 @@ Use `./scripts/build-app.sh native` to build only for the current Mac. Open `Pac
 For folders managed by a file provider that adds Finder metadata to generated bundles, set `ACNH_BUILD_SCRATCH` to a non-synced temporary build directory and `ACNH_BUILD_OUTPUT` to a temporary output folder. For example, `ACNH_BUILD_SCRATCH=/private/tmp/ACNH-Build ACNH_BUILD_OUTPUT=/private/tmp/ACNH-App ./scripts/build-app.sh`. The source stays in the project folder.
 
 The source for this native port is under GPL-3.0; original MIT notices are retained. See `THIRD-PARTY-NOTICES.md` and `LICENSE`.
+
+### Building artwork and plot guides
+
+Buildings use 14 original Animal Crossing-inspired fan icons. Standard houses, shops, the museum, Resident Services, straight bridges, and inclines have placement-size guides; a dashed one-tile border helps plan spacing. Guides remain centered on the existing saved marker; exact model anchor offsets, infrastructure orientation, and collision masks still need in-game verification. Unverified special structures and diagonal bridges show icons without invented plot dimensions. See [dimension sources and limitations](../../Design/Map/Building-Artwork-and-Spacing.md).
+
+### Bundled example island
+
+Explore a Preview loads the complete Yolo island contributed by the project owner. Its terrain, buildings, outdoor objects, resident settings, pockets, and storage come from the included ACNH 3.0.3 save snapshot. The example is tracked in Git at `Sources/ACNHMac/ExampleSave` and included in every build. Preview changes stay in memory; saving and exporting remain disabled, and the owner's original save is untouched.
+
+### Map keyboard controls
+
+Click the map to focus it, then use the arrow keys to select terrain tiles or item cells. Selection stays within that layer's bounds. Arrow keys move only the selection and leave the map's scroll position unchanged. Pinch on the map for continuous zoom. A native scroll view applies magnification and centering together, with no delayed scroll correction. Zooming keeps the same map point at the center of the viewport; smaller maps are centered in the available space.
+
+In the Items tab, **⌘C** copies the selected object's exact record and linked footprint, **⌘V** pastes it into empty space, and **Delete** removes the entire selected object. **⌘Z** undoes edits. Copying an extension cell resolves its root object; variations, flags and quantities are preserved, including planted objects. Paste checks the entire footprint before changing the draft and rejects occupied cells or map edges. Terrain and buildings are excluded from clipboard/delete actions. Keyboard shortcuts apply to the focused map; search fields retain normal text editing. These controls are also shown below “An island of your own.”
+
+In Items, **Snap to tiles** is enabled by default. Clicks select object roots or align to whole tiles; arrows and coordinate steppers move one full tile per press. Turn it off for half-tile selection and movement. Existing objects keep their saved positions, including roots on odd half-tile coordinates.
+
+**Snap to tiles** and its information icon sit beside the zoom control. Click the icon to see its helper text in a popover.

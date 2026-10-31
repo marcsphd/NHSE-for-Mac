@@ -50,6 +50,10 @@ public struct MapBuilding: Identifiable {
     public let id: Int
     public let kind: UInt16
     public var position: BuildingPosition
+    public let subtype: UInt16
+    public init(id: Int, kind: UInt16, position: BuildingPosition, subtype: UInt16 = 0) {
+        self.id = id; self.kind = kind; self.position = position; self.subtype = subtype
+    }
     public var name: String {
         if (1...8).contains(kind) { return "Player \(kind)’s house" }
         if (9...18).contains(kind) { return "Villager \(kind - 8)’s house" }
@@ -145,7 +149,7 @@ public struct IslandSnapshot {
     }
     public func building(_ index: Int, edits: IslandEdits = .init()) -> MapBuilding {
         let offset = IslandLayout.buildings + index * 20
-        return MapBuilding(id: index, kind: main.u16(offset), position: edits.buildings[index] ?? BuildingPosition(x: main.u16(offset + 2), y: main.u16(offset + 4), angle: main[offset + 6]))
+        return MapBuilding(id: index, kind: main.u16(offset), position: edits.buildings[index] ?? BuildingPosition(x: main.u16(offset + 2), y: main.u16(offset + 4), angle: main[offset + 6]), subtype: main.u16(offset + 8))
     }
     public func villager(_ index: Int, edits: IslandEdits = .init()) -> VillagerEdit {
         if let record = edits.villagers[index] { return record }
@@ -210,6 +214,17 @@ public struct IslandSnapshot {
             let offset = IslandLayout.terrain + (x * 96 + y) * 14
             main.replaceSubrange(offset..<(offset + 14), with: tile.raw)
         } }
+        // Show the bundled field-object artwork in the example island as well.
+        for (x, y, id, layer) in [
+            (84, 116, 60001, 0), (92, 116, 60009, 0), (100, 116, 60023, 0),
+            (84, 124, 60260, 0), (88, 124, 60263, 0), (92, 124, 60266, 0),
+            (96, 124, 60269, 0), (100, 124, 60284, 0),
+            (84, 132, 60017, 0), (92, 132, 60020, 0), (100, 132, 60022, 0),
+            (108, 124, 60262, 1)
+        ] {
+            let index = layer * IslandLayout.fieldCount + x * 192 + y
+            main.put16(UInt16(id), at: IslandLayout.field + index * 8)
+        }
         for i in 0..<10 { main[IslandLayout.villagers + i * IslandLayout.villagerSize] = 35 }
         for (index, species, variant, personality, phrase) in [(0, 4, 0, 4, "kablang"), (1, 10, 2, 0, "ruff ruff")] {
             let offset = IslandLayout.villagers + index * IslandLayout.villagerSize
@@ -220,7 +235,12 @@ public struct IslandSnapshot {
             main.replaceSubrange((offset + 0x24)..<(offset + 0x24 + name.count), with: name)
             main[offset + 0x46] = 75
         }
-        for (index, kind, x, y) in [(0, 1, 40, 60), (1, 19, 65, 60), (2, 21, 80, 40)] {
+        for (index, kind, x, y) in [
+            (0,1,80,60), (1,19,140,60), (2,21,200,60),
+            (3,9,80,90), (4,20,110,90), (5,22,160,90), (6,23,200,90),
+            (7,24,80,150), (8,25,110,150), (9,26,150,150), (10,27,180,150),
+            (11,28,80,190), (12,29,140,190), (13,42,200,190)
+        ] {
             let offset = IslandLayout.buildings + index * 20
             main.put16(UInt16(kind), at: offset); main.put16(UInt16(x), at: offset + 2); main.put16(UInt16(y), at: offset + 4)
         }

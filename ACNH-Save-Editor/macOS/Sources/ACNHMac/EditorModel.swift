@@ -224,6 +224,25 @@ typealias Loadout = PocketLoadout
             status = "\(item.name) added to the map draft."
         } catch { self.error = error.localizedDescription }
     }
+    func copyMapItem(at index: Int) -> Data? {
+        guard !busy, let world, let draft else { return nil }
+        do {
+            let copied = try world.copyingItem(at: index, edits: draft.island)
+            let data = try JSONEncoder().encode(copied)
+            status = "\(copied.rootItem.map { catalog.name($0) } ?? "Object") copied with its footprint."
+            return data
+        } catch { self.error = error.localizedDescription; return nil }
+    }
+    func pasteMapItem(_ data: Data, at index: Int) {
+        guard !busy, let world, let draft else { return }
+        do {
+            guard data.count <= 1_048_576 else { throw SaveError("The copied map object is too large.") }
+            let copied = try JSONDecoder().decode(MapItemClipboard.self, from: data)
+            let edits = try world.pastingItem(copied, at: index, edits: draft.island)
+            change { $0.island = edits }
+            status = "Outdoor object pasted into the draft. Use ⌘Z to undo."
+        } catch { self.error = error.localizedDescription }
+    }
     func clearMapItem(at index: Int) {
         guard let world, let draft else { return }
         do {

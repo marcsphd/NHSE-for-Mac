@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 public struct MapCell: Equatable {
     public let x: Int
@@ -33,6 +34,26 @@ public enum MapCoordinates {
         return nearest
     }
 
+    /// Dimension guides stay centered on the existing saved marker. The exact
+    /// per-model anchor and collision mask are not yet verified.
+    public static func buildingBounds(_ building: MapBuilding, zoom: Double) -> CGRect {
+        let point = buildingPoint(building.position, zoom: zoom)
+        let plot = BuildingFootprint.forBuilding(building)
+        let width = (plot?.width ?? 3) * zoom
+        let depth = (plot?.depth ?? 3) * zoom
+        return CGRect(x: point.x - width / 2, y: point.y - depth / 2, width: width, height: depth)
+    }
+
+    public static func buildingAt(x: Double, y: Double, zoom: Double, buildings: [MapBuilding]) -> Int? {
+        guard let point = worldPoint(x: x, y: y, zoom: zoom),
+              (0..<144).contains(point.x), (0..<128).contains(point.y) else { return nil }
+        let candidates = buildings.filter {
+            $0.kind != 0 && $0.position.x < IslandLayout.buildingWidth && $0.position.y < IslandLayout.buildingHeight &&
+            buildingBounds($0, zoom: zoom).contains(CGPoint(x: x, y: y))
+        }
+        return nearestBuilding(x: x, y: y, zoom: zoom, buildings: candidates)
+    }
+
     public static func terrain(x: Double, y: Double, zoom: Double) -> MapCell? {
         guard let point = worldPoint(x: x, y: y, zoom: zoom),
               (16..<128).contains(point.x), (16..<112).contains(point.y) else { return nil }
@@ -43,6 +64,21 @@ public enum MapCoordinates {
         guard let point = worldPoint(x: x, y: y, zoom: zoom),
               (0..<144).contains(point.x), (16..<112).contains(point.y) else { return nil }
         return MapCell(x: Int(floor(point.x * 2)), y: Int(floor((point.y - 16) * 2)))
+    }
+
+    /// Item coordinates are half tiles; an aligned full-tile root uses even values.
+    public static func snappedItemCell(_ cell: MapCell) -> MapCell {
+        MapCell(x: min(286, max(0, cell.x)) / 2 * 2,
+                y: min(190, max(0, cell.y)) / 2 * 2)
+    }
+
+    public static func movingItemCell(_ cell: MapCell, dx: Int, dy: Int, snapped: Bool) -> MapCell {
+        let step = snapped ? 2 : 1
+        // Keep the phase of existing odd-coordinate roots when moving by full tiles.
+        let minX = cell.x % step, minY = cell.y % step
+        let maxX = 287 - (287 - minX) % step, maxY = 191 - (191 - minY) % step
+        return MapCell(x: min(maxX, max(minX, cell.x + dx * step)),
+                       y: min(maxY, max(minY, cell.y + dy * step)))
     }
 
     private static func worldPoint(x: Double, y: Double, zoom: Double) -> (x: Double, y: Double)? {

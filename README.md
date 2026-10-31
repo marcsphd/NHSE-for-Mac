@@ -2,7 +2,7 @@
 
 A native SwiftUI Animal Crossing: New Horizons save editor for macOS, primarily adapted from [NHSE](https://github.com/kwsch/NHSE). The initial foundation and selected save-cryptography routines come from [ACNH-Save-Editor](https://github.com/cbreezy210/ACNH-Save-Editor).
 
-Current Mac version: **1.4.4**. Requires **macOS 14 or later**. Universal builds support Apple silicon and Intel. Supported save revisions: **ACNH 3.0.0–3.0.3**.
+Current Mac version: **2.0**. Requires **macOS 14 or later**. Universal builds support Apple silicon and Intel. Supported save revisions: **ACNH 3.0.0–3.0.3**.
 
 ## Download and install
 
@@ -16,18 +16,26 @@ Requires macOS 14 or later. One download supports both Apple silicon and Intel. 
 
 **First launch:** this build is ad-hoc signed and has not been notarized by Apple. If macOS blocks it and you trust this download, open **System Settings → Privacy & Security → Open Anyway** after attempting to launch it. See [Apple's first-launch instructions](https://support.apple.com/102445). A launch without this approval requires Developer ID signing and notarization, which are not yet available for this project.
 
+## New in 2.0
+
+- Recognizable outdoor objects using bundled NHSE inventory artwork, plus 14 illustrated building categories and size guides where dimensions are verified.
+- Centered, continuous pinch zoom from 100% to 500%, with five slider presets and sharp artwork at high zoom.
+- Arrow-key tile selection without scrolling the map; item-only copy, paste, delete, and undo with complete object footprints.
+- Default-on **Snap to tiles** beside zoom, with an information popover and on-screen keyboard guidance.
+- The owner-contributed Yolo island bundled as the default preview, including its terrain, buildings, and objects.
+
 ## Features
 
 - Player settings: primary resident name and birthday.
 - Island settings: island name, hemisphere, airport, weather, fruit, and flowers.
 - Pockets and home storage with bundled item icons, item search, quantities, and multiple-slot placement. Shift-click selects a range; Command-click adds or removes individual slots.
-- Island map editing for terrain, paths, outdoor items, and building positions.
+- Island map editing with NHSE object artwork, distinct building icons and size guides, continuous centered pinch zoom, keyboard navigation, and item copy/paste/delete.
 - Animal-villager identities, personality, catchphrases, moving-out state, and basic friendship.
 - Money editing, saved pocket loadouts, undo/redo, change review, full-save exports, verified backups, and restore.
 
 ### Feature comparison
 
-This compares NHSE with **NHSE for Mac 1.4.1**. “Limited” means the Mac app implements only the scope described below.
+This compares NHSE with **NHSE for Mac 2.0**. “Limited” means the Mac app implements only the scope described below.
 
 | Feature | NHSE | NHSE for Mac |
 | --- | --- | --- |
@@ -44,8 +52,8 @@ This compares NHSE with **NHSE for Mac 1.4.1**. “Limited” means the Mac app 
 | Inventory-file import and export | Available | **Limited:** local pocket loadouts; no NHSE inventory-file import/export |
 | Terrain, elevation, and paths | Map and terrain editors | **Limited:** schematic map, brushes, tile models, elevation, and rotation; manual edge/adjacency checking |
 | Shoreline and base-acre editing | Available | **Not implemented:** existing shoreline and acres are preserved |
-| Outdoor item placement and removal | Available | Available, including both item layers and linked item footprints |
-| Building positions | Building editor | **Limited:** move and rotate existing buildings; collision and bridge/incline connections need manual checking |
+| Outdoor item placement and removal | Available | Available, including both item layers, linked item footprints, keyboard copy/paste/delete, and tile snapping |
+| Building positions | Building editor | **Limited:** distinct building artwork and available size guides; move and rotate existing buildings; collision and bridge/incline connections need manual checking |
 | Animal-villager identity and basic details | Available | **Limited:** existing villagers; identity, personality, catchphrase, moving-out state, and basic friendship |
 | Villager-file import/export, flags, and detailed memories | Available | **Not implemented:** no full villager/preset replacement or advanced flag/memory editor |
 | Player and villager house interiors | House and room editors | **Not implemented:** existing interiors are preserved |
@@ -79,7 +87,7 @@ Using a local build folder avoids file-provider metadata interfering with app si
 
 Open a complete exported save folder containing `main.dat`, `mainHeader.dat`, and the resident files. Review your draft, then export an edited copy or save with an automatic backup. Keep a separate original backup and import saves with the game closed.
 
-**55 automated tests passed** for version 1.4.1, alongside native interface and independent export checks. See the [validation report](ACNH-Save-Editor/macOS/VALIDATION.md). Importing the edited save back into the game remains untested.
+**77 automated tests passed** for version 2.0, alongside native interface and independent export checks. See the [validation report](ACNH-Save-Editor/macOS/VALIDATION.md). Importing the edited save back into the game remains untested.
 
 Personal save files, build caches, and packaged application bundles are excluded from this repository, except for the owner-contributed Yolo save included as the default example island.
 
