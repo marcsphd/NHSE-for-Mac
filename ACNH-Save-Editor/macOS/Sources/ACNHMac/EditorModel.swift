@@ -48,6 +48,9 @@ typealias Loadout = PocketLoadout
     @Published var session: SaveSession?
     @Published var draft: SaveDraft?
     @Published var demo = false
+    var previewDescription: String {
+        "\(draft?.islandSettings.name ?? "Yolo") example island"
+    }
     @Published var pocketSelection = InventorySelection(0)
     @Published var storageSelection = InventorySelection()
     @Published var selectedItem: UInt16?
@@ -258,21 +261,22 @@ typealias Loadout = PocketLoadout
     }
     func openDemo() {
         guard confirmDiscard() else { return }
-        session = nil; demo = true; previewWorld = .preview()
-        var pockets = Array(repeating: PocketItem.empty, count: 30)
-        for (i, name) in ["Nook Miles Ticket", "golden shovel", "gold nugget", "star fragment"].enumerated() {
-            if let item = catalog.items.first(where: { $0.name == name }) { pockets[i] = try! PocketItem.make(id: item.id, quantity: min(10, item.maxStack), maxStack: item.maxStack) }
+        guard let resource = Bundle.module.url(forResource: "ExampleSave", withExtension: nil) else {
+            error = "The bundled example island is missing. Reinstall the app to restore it."
+            return
         }
-        draft = SaveDraft(economy: [32_800, 1_250_000, 18_500, 548_000], pockets: pockets)
-        draft?.playerSettings.name = "Marina"; draft?.playerSettings.birthMonth = 6; draft?.playerSettings.birthDay = 15
-        draft?.islandSettings.name = "Palm Bay"; draft?.islandSettings.nativeFruit = 2213; draft?.islandSettings.sisterFruit = 2286
-        draft?.storage = Array(repeating: .empty, count: 80)
-        for (i, name) in ["gold nugget", "iron nugget", "golden axe", "Nook Miles Ticket"].enumerated() {
-            if let item = catalog.items.first(where: { $0.name == name }) { draft?.storage[i] = try! PocketItem.make(id: item.id, quantity: min(10, item.maxStack), maxStack: item.maxStack) }
+        do {
+            let loaded = try SaveSession(folder: resource.appendingPathComponent("Save", isDirectory: true))
+            // Keep no live SaveSession: previews cannot write or export the bundled snapshot.
+            session = nil; draft = loaded.initial; demo = true
+            previewWorld = IslandSnapshot(main: loaded.main)
+            pocketSelection = InventorySelection(loaded.initial.pockets.isEmpty ? nil : 0)
+            storageSelection = InventorySelection(loaded.initial.storage.isEmpty ? nil : 0)
+            history.removeAll(); future.removeAll(); page = .overview
+            status = "Preview · \(loaded.initial.islandSettings.name) · ACNH \(loaded.version) · Export and save disabled"
+        } catch {
+            self.error = "Could not load the example island: \(error.localizedDescription)"
         }
-        pocketSelection = InventorySelection(0); storageSelection = InventorySelection(0)
-        history.removeAll(); future.removeAll(); page = .overview
-        status = "Preview mode • Example values • Export and save disabled"
     }
     func export() {
         guard let session, let draft, !busy else { return }

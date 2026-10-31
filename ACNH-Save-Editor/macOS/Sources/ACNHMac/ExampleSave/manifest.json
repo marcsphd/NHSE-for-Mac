@@ -1,0 +1,17 @@
+{
+  "island": "Yolo",
+  "version": "3.0.3",
+  "sha256": {
+    "Villager0/personal.dat": "bd23afc2a5296a9587d9b9f75c3fb962d4ad8b309874c6f466a2c80830a4cdea",
+    "Villager0/personalHeader.dat": "4d78d087df621fcf38175f388603a621d10681e2edd419431ee6059672a71ffb",
+    "Villager0/photo_studio_island.dat": "28adfa4747df7f56f1451eff90c039ba6a73ea442a1a7954ecaffa3d1be4f5d2",
+    "Villager0/photo_studio_islandHeader.dat": "414ada75d04101c07498c48e2545b2b86adf7f87ecd720a52c1b6004bdcd9310",
+    "Villager0/postbox.dat": "e58bfeabccb6f38585962fb943e08e110780e0b3d0b7595c24cd1f1cf8fab8cd",
+    "Villager0/postboxHeader.dat": "f216d3e1935f15841c5916cdb54c16f5230534bfeaefd9218806777515f176b1",
+    "Villager0/profile.dat": "1cd53d44f8ebc1e678c14deb4addc17fe5b3ba30f381ade7c8a69b82a0172b06",
+    "Villager0/profileHeader.dat": "3249dfa0f7f30e6f1a0b62ac54c674e9a26cf9bf899a11cefaf1d5f891e323cf",
+    "landname.dat": "8720ee37bc6b02b010cea1779ece38ed4657f17f1c33c403bed6afaf051d6c89",
+    "main.dat": "3f7a6f55dfe3495fb5ed1867f86e3234c402fb2226c6f3b0977bc7910988d355",
+    "mainHeader.dat": "f298af8951eb9becb690813bf91032b64d72be3253a616552c3363bde0fd3056"
+  }
+}

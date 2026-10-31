@@ -81,7 +81,7 @@ Open a complete exported save folder containing `main.dat`, `mainHeader.dat`, an
 
 **55 automated tests passed** for version 1.4.1, alongside native interface and independent export checks. See the [validation report](ACNH-Save-Editor/macOS/VALIDATION.md). Importing the edited save back into the game remains untested.
 
-Personal save files, build caches, and packaged application bundles are excluded from this repository.
+Personal save files, build caches, and packaged application bundles are excluded from this repository, except for the owner-contributed Yolo save included as the default example island.
 
 ## Source and credits
 

@@ -27,3 +27,7 @@ Villager[0-7]/
 /Design/Icon Concepts/*
 !/Design/Icon Concepts/01-leaf-and-pencil.png
 !/Design/Icon Concepts/06-inventory-tiles.png
+
+# The contributed example island is intentionally versioned and bundled.
+!/ACNH-Save-Editor/macOS/Sources/ACNHMac/ExampleSave/
+!/ACNH-Save-Editor/macOS/Sources/ACNHMac/ExampleSave/**

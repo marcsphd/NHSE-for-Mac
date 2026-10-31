@@ -8,7 +8,7 @@ let package = Package(
     targets: [
         .target(name: "SaveCrypto", publicHeadersPath: "include"),
         .target(name: "ACNHCore", dependencies: ["SaveCrypto"]),
-        .executableTarget(name: "ACNHMac", dependencies: ["ACNHCore"], resources: [.process("Resources")]),
+        .executableTarget(name: "ACNHMac", dependencies: ["ACNHCore"], resources: [.process("Resources"), .copy("ExampleSave")]),
         .testTarget(name: "ACNHCoreTests", dependencies: ["ACNHCore", "SaveCrypto"])
     ],
     swiftLanguageModes: [.v5],

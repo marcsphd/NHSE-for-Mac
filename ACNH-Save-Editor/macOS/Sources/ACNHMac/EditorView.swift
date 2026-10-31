@@ -26,7 +26,7 @@ struct EditorView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Label(model.demo ? "Preview mode" : model.session == nil ? "No save open" : "Save verified", systemImage: model.demo ? "eye" : "checkmark.shield")
                         .font(.caption.weight(.semibold)).foregroundStyle(model.session == nil ? Color.secondary : .island)
-                    Text(model.demo ? "Explore with example data." : model.session?.folder.lastPathComponent ?? "Your next island adventure.")
+                    Text(model.demo ? "Explore · \(model.previewDescription)" : model.session?.folder.lastPathComponent ?? "Your next island adventure.")
                         .font(.caption).foregroundStyle(.secondary).lineLimit(2)
                     Button("Open Save Folder…", action: model.chooseFolder).controlSize(.small)
                 }.padding(18)
@@ -129,7 +129,7 @@ struct EditorView: View {
             .accessibilityLabel("NHSE for Mac app icon")
     }
     private var demoBanner: some View {
-        Label("Preview · Example data. Open your save to export or save edits.", systemImage: "eye")
+        Label("Preview · \(model.previewDescription). Open your save to export or save edits.", systemImage: "eye")
             .font(.callout).padding(12).frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.island.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
     }
